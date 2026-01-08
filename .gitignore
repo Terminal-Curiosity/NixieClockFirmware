@@ -1,0 +1,36 @@
+# PlatformIO
+.pio/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# KiCad
+*.kicad_prl
+*.lck
+fp-info-cache
+#auto_saved_files#
+
+# Build outputs
+*.pdf
+*.stl
+*.3mf
+*.zip
+
+# PCB specific
+_PCB/NixieClock/NixieClock_NixieTubePanel/gerber_to_order/
+_PCB/NixieClock/NixieClock_ControlDaughterBoard/#auto_saved_files#/
+_PCB/NixieClock/NixieClock_NixieTubePanel/Outputs/
+_PCB/NixieClock/NixieClock_NixieTubePanel/bom/ibom.html
+
+# Misc
+*.lnk
+.DS_Store
