@@ -36,9 +36,6 @@ void showCurrentTime();
 
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(4, led_pin, NEO_GRB + NEO_KHZ800);
-bool led_update = 0;
-
-//uint32_t currentTimeSec; // current time in seconds since midnight
 
 
 void setup() {
@@ -52,7 +49,7 @@ void setup() {
   timebaseInit(); //initialize the clock value
 
   strip.begin();         // Initialize NeoPixel strip
-  strip.setBrightness(50);  // brightness from 0–255
+  strip.setBrightness(254);  // brightness
   strip.show();          // Turn off all LEDs at start
   
   Serial.begin(115200);
@@ -78,32 +75,31 @@ void loop() {
 
     digitalWrite(HV_enable_pin, HIGH); //enable HV supply
     //updateTubeDisplay(2026);
+
+   uint32_t color = ColorHSV(hue, 1.0, 1.0); //hue from 0-360, saturation 0-1, value 0-1uint32_t color = ColorHSV(hue, 1, 1);
+
+
   if(oneSecondFlag)
   {
-    timebaseTick();     //increment the time by one second
-    oneSecondFlag = false; //reset the flag
+    timebaseTick();         //increment the time by one second
+    oneSecondFlag = false;  //reset the flag
+    showCurrentTime();      //update the tube display to show the new time
+
     
-    showCurrentTime();   //update the tube display to show the new time
+
   }
-  // uint32_t color = ColorHSV(hue, 1, 1);
-
-  // uint32_t led_colour_val = 0x000000FF << current_digit_bcd_tube1;
-  // strip.setPixelColor(0, color);  // Set the first (only) LED
-  // strip.setPixelColor(1, color);
-  // strip.setPixelColor(2, color);
-  // strip.setPixelColor(3, color);
-
-  
-
-  
-  // strip.show();
-  // led_update = 0;
-  // hue = hue+36;
-  // Serial.println(hue);
-  // if(hue >= 360)
-  // {
-  //   hue = 0;
-  // }
+    strip.setPixelColor(0, color);  // Set the first LED
+    strip.setPixelColor(1, color);
+    strip.setPixelColor(2, color);
+    strip.setPixelColor(3, color);
+    strip.show();
+    hue = hue+3;
+     Serial.println(hue);
+  if(hue >= 360)
+  {
+    hue = 0;
+  }
+  delay(100);
  }
 
 void IRAM_ATTR one_sec_tick_timer_callback(void* arg)

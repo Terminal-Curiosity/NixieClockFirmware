@@ -30,3 +30,4 @@ void timeAdjustSeconds(int32_t deltaSeconds){
     }
     currentTimeSec = static_cast<uint32_t>(timeIntermediate);
 }
+
