@@ -31,7 +31,10 @@ void setTimeSecondsOfTheDay(uint32_t seconds) {
 }
 
 uint32_t getTime() {
-  return currentTimeSec;
+  noInterrupts();
+  uint32_t time_copy = currentTimeSec;
+  interrupts();
+  return time_copy;
 }
 
 void timeAdjustSeconds(int32_t deltaSeconds){

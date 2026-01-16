@@ -17,14 +17,15 @@ void showCurrentTime()
   int16_t displayTime = minutes * 100 + seconds; //display MMSS only
   tubesDisplayValue(displayTime);
   //Serial.print("Time(HHMM): " + String(displayTime)+ "\n"); 
-  Serial.print("Time(MMSS): " + String(displayTime)+ "\n"); 
-  Serial.print("Time(SSSSS): " + String(getTime())+ "\n"); 
+  // Serial.print("Time(MMSS): " + String(displayTime)+ "\n"); 
+  // Serial.print("Time(SSSSS): " + String(getTime())+ "\n"); 
 }
 
 void tubesDisplayValue(int value_to_display = 0)
 //update the tube display to show the value passed into the function.
 //NOTE: tubes 1 and 3 have non-standard digit wiring, so the upper nibbles must be remapped before being used.
 {
+
 
   //display upper pair
   uint8_t upper = digit_to_pin_mapping[value_to_display / 1000];
