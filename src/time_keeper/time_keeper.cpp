@@ -1,8 +1,22 @@
 #include "time_keeper.h"
+#include <Arduino.h>
+#include <esp_timer.h> 
 
 static uint32_t currentTimeSec; // current time in seconds since midnight
+static bool oneSecondFlag = false;  // Flag set by the one second timer ISR
+esp_timer_handle_t one_sec_tick_timer_handle; // One second timer to increment clock time
+void IRAM_ATTR one_sec_tick_timer_callback(void* arg);
 
 void timebaseInit() {
+  esp_timer_create_args_t one_sec_tick_timer_args = {
+      .callback = &one_sec_tick_timer_callback, 
+      .name = "one_sec_tick_timer"            
+  };
+
+  esp_timer_create(&one_sec_tick_timer_args, &one_sec_tick_timer_handle);
+  esp_timer_start_periodic(one_sec_tick_timer_handle, 1000000);
+  Serial.println("PWM timers initialized and started.");
+
   currentTimeSec = 0; // Initialize time to midnight
 }
 
@@ -31,3 +45,19 @@ void timeAdjustSeconds(int32_t deltaSeconds){
     currentTimeSec = static_cast<uint32_t>(timeIntermediate);
 }
 
+bool consumeTickFlag()
+{
+  if(!oneSecondFlag)
+  {
+    return false;
+  }
+    oneSecondFlag = false;
+    return true;
+}
+   
+
+
+void IRAM_ATTR one_sec_tick_timer_callback(void* arg)
+{
+  oneSecondFlag = true; //after one sec, set the flag true
+}

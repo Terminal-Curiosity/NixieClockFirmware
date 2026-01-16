@@ -1,6 +1,6 @@
 #include <Wire.h>
 #include <Adafruit_NeoPixel.h>
-#include <esp_timer.h> 
+
 #include "config.h"
 #include "ldr/ldr.h"
 #include "nixie_tubes/nixie_tubes.h"
@@ -8,23 +8,12 @@
 #include "clock_tick/clock_tick.h"  
 #include "time_keeper/time_keeper.h"
 
-
-volatile bool oneSecondFlag = false; // set by the one second timer ISR. used by loop
-
-
 // --- Global Variables for Display (volatile for ISR access) ---
 volatile byte current_digit_bcd_tube1 = 0x00; // Example: Display digit '0' for tube 1
 volatile byte current_digit_bcd_tube2 = 0x02; // Example: Display digit '2' for tube 2
 volatile byte current_digit_bcd_tube3 = 0x03; // Example: Display digit '3' for tube 3
 volatile byte current_digit_bcd_tube4 = 0x08; // Example: Display digit '4' for tube 4
 
-// --- Timer Handles ---
-esp_timer_handle_t one_sec_tick_timer_handle; // One second timer to increment clock time
-
-// --- Function Prototypes (IRAM_ATTR (instruction RAM atribute) for ISRs for reliability) ---
-// IRAM_ATTR places the ISR functions in RAM instead of flash because its much faster and is not affected if flash memory is already in use elsewhere.
-void IRAM_ATTR pwm_on_timer_callback(void* arg); 
-void IRAM_ATTR one_sec_tick_timer_callback(void* arg);
 
 void readLDRAndMapBrightness();
 void writePcf8574(byte address, byte data);
@@ -57,15 +46,11 @@ void setup() {
 
 
 
-  esp_timer_create_args_t one_sec_tick_timer_args = {
-      .callback = &one_sec_tick_timer_callback, 
-      .name = "one_sec_tick_timer"            
-  };
-  esp_timer_create(&one_sec_tick_timer_args, &one_sec_tick_timer_handle);
+  
+  
 
   // Start the main periodic timer; it will fire every PWM_PERIOD_US (e.g., 5ms)
-  esp_timer_start_periodic(one_sec_tick_timer_handle, 1000000);
-  Serial.println("PWM timers initialized and started.");
+  
  
 }
 
@@ -79,10 +64,9 @@ void loop() {
    uint32_t color = ColorHSV(hue, 1.0, 1.0); //hue from 0-360, saturation 0-1, value 0-1uint32_t color = ColorHSV(hue, 1, 1);
 
 
-  if(oneSecondFlag)
+  if(consumeTickFlag())
   {
     timebaseTick();         //increment the time by one second
-    oneSecondFlag = false;  //reset the flag
     showCurrentTime();      //update the tube display to show the new time
 
     
@@ -102,8 +86,5 @@ void loop() {
   delay(100);
  }
 
-void IRAM_ATTR one_sec_tick_timer_callback(void* arg)
-{
-  oneSecondFlag = true; //after one sec, set the flag true
-}
+
 
