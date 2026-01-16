@@ -49,7 +49,7 @@ void setup() {
   
   
 
-  // Start the main periodic timer; it will fire every PWM_PERIOD_US (e.g., 5ms)
+ 
   
  
 }
@@ -64,7 +64,7 @@ void loop() {
    uint32_t color = ColorHSV(hue, 1.0, 1.0); //hue from 0-360, saturation 0-1, value 0-1uint32_t color = ColorHSV(hue, 1, 1);
 
 
-  if(consumeTickFlag())
+  if(consumeOneSecondTick())
   {
     timebaseTick();         //increment the time by one second
     showCurrentTime();      //update the tube display to show the new time
