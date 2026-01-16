@@ -31,7 +31,7 @@
 // }
 
 
-uint32_t ColorHSV(float h, float s, float v) {
+uint32_t colorHSV(float h, float s, float v) {
   float c = v * s;
   float x = c * (1 - fabs(fmod(h / 60.0, 2) - 1));
   float m = v - c;

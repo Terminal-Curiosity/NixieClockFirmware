@@ -9,21 +9,19 @@ static constexpr uint8_t digit_to_pin_mapping[] = {9,0,8,4,12,2,10,6,14,1};
 
 void showCurrentTime()
 {
-
-
   uint8_t hours = getTime() / 3600;
   uint8_t minutes = (getTime() % 3600) / 60;
   uint8_t seconds = getTime() % 60;
 
   //int16_t displayTime = hours * 100 + minutes; //display HHMM only
   int16_t displayTime = minutes * 100 + seconds; //display MMSS only
-  updateTubeDisplay(displayTime);
+  tubesDisplayValue(displayTime);
   //Serial.print("Time(HHMM): " + String(displayTime)+ "\n"); 
   Serial.print("Time(MMSS): " + String(displayTime)+ "\n"); 
   Serial.print("Time(SSSSS): " + String(getTime())+ "\n"); 
 }
 
-void updateTubeDisplay(int value_to_display = 0)
+void tubesDisplayValue(int value_to_display = 0)
 //update the tube display to show the value passed into the function.
 //NOTE: tubes 1 and 3 have non-standard digit wiring, so the upper nibbles must be remapped before being used.
 {
@@ -33,13 +31,13 @@ void updateTubeDisplay(int value_to_display = 0)
   upper = ((upper & 0b1000) | ((upper & 0b0001) << 2) | ((upper & 0b0110) >> 1)) << 4; //realign bits as per wiring
   uint8_t lower = digit_to_pin_mapping[(value_to_display % 1000) / 100];
   byte data_for_pcf2 = upper | lower;
-  writePcf8574(PCF8574_ADDRESS_2, data_for_pcf2); //upper digits
+  pcf8574WriteOneByte(PCF8574_ADDRESS_2, data_for_pcf2); //upper digits
 
   //display lower pair
   upper = digit_to_pin_mapping[(value_to_display % 100) / 10];
   upper = ((upper & 0b1000) | ((upper & 0b0001) << 2) | ((upper & 0b0110) >> 1)) << 4; //realign bits as per wiring
   lower = digit_to_pin_mapping[(value_to_display % 10)];
   byte data_for_pcf1 = upper | lower;
-  writePcf8574(PCF8574_ADDRESS_1, data_for_pcf1); //lower digits
+  pcf8574WriteOneByte(PCF8574_ADDRESS_1, data_for_pcf1); //lower digits
   
 }

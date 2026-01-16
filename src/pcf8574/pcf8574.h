@@ -3,4 +3,4 @@
 
 #include <stdint.h>
 
-void writePcf8574(uint8_t address, uint8_t data);
+void pcf8574WriteOneByte(uint8_t address, uint8_t data);
