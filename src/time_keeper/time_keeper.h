@@ -9,4 +9,5 @@ void timebaseTick();
 void setTimeSecondsOfTheDay(uint32_t seconds);
 bool consumeOneSecondTick();
 
+
 uint32_t getTime();

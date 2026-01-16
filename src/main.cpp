@@ -6,6 +6,8 @@
 #include "I2C/I2C.h"
 #include "wifi/wifi.h"
 #include "HVPSU/hvpsu.h"
+#include "ntpManager/ntpManager.h"
+#include "secrets.h" //not included in repo for security reasons
 
 void setup() {
   Serial.begin(115200);
@@ -17,6 +19,7 @@ void setup() {
   ledsInit();
   timeKeeperInit(); 
   wifi_init();
+  ntpManagerInit();
 
   Serial.println("Setup Complete.");
   hvpsuEnable();
@@ -32,7 +35,7 @@ void loop() {
   }
 
  ledSlowRainbowFade();
- 
+ ntpRequestTimeUpdate();
 
 yield(); //yield to allow background processes to run - wifi etc.
 

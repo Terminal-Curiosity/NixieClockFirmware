@@ -26,8 +26,9 @@ void timebaseTick() {
   }
 }
 
-void setTimeSecondsOfTheDay(uint32_t seconds) {
-  currentTimeSec = seconds % SECONDS_PER_DAY;
+void setTimeSecondsOfTheDay(uint8_t hours, uint8_t minutes, uint8_t seconds) {
+  uint32_t totalSeconds = hours * 3600 + minutes * 60 + seconds;
+  setTimeSecondsOfTheDay(totalSeconds);
 }
 
 uint32_t getTime() {
@@ -46,6 +47,8 @@ void timeAdjustSeconds(int32_t deltaSeconds){
     }
     currentTimeSec = static_cast<uint32_t>(timeIntermediate);
 }
+
+
 
 bool consumeOneSecondTick()
 {
