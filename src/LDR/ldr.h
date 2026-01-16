@@ -2,7 +2,8 @@
 
 #include <arduino.h>
 
-uint8_t ldrRawValue();
-uint8_t ldrbrightnessPercentage();
+uint8_t ldrReportRawValue();
+uint8_t ldrReportValueAsPercentage();
 
+void ldrReadSave(void);
 void ldrInit(void);

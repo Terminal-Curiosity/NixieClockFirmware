@@ -10,17 +10,22 @@ void ldrInit()
     analogSetAttenuation(ADC_11db); // sets attenuation of LDR input (otherwise it will be 0-1V)
 }
 
-uint8_t ldrRawValue()
+void ldrReadSave()
 {
-    return ldrValue = analogRead(LDR_pin); 
+    ldrValue = analogRead(LDR_pin); 
 }
 
-uint8_t ldrbrightnessPercentage() {
+uint8_t ldrReportRawValue()
+{
+    return ldrValue;
+}
+
+uint8_t ldrReportValueAsPercentage() {
   // Maps the raw ADC value (from LDR_BRIGHT_ADC_MIN to LDR_DARK_ADC_MAX)
   // to the desired brightness percentage (from MAX_BRIGHTNESS_PERCENT to MIN_BRIGHTNESS_PERCENT).
   // Remember to calibrate LDR_BRIGHT_ADC_MIN and LDR_DARK_ADC_MAX for your specific setup.
 
-  current_brightness_percent = map(ldrRawValue(), 
+  current_brightness_percent = map(ldrReportRawValue(), 
                                    LDR_BRIGHT_ADC_MIN,  // Input lower bound (ADC val for bright)
                                    LDR_DARK_ADC_MAX,    // Input upper bound (ADC val for dark)
                                    MAX_BRIGHTNESS_PERCENT, // Output lower bound (for bright)
