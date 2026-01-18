@@ -23,6 +23,7 @@ void setup() {
 
   Serial.println("Setup Complete.");
   hvpsuEnable();
+  Serial.println("HV PSU now Enabled.");
 }
 
 
