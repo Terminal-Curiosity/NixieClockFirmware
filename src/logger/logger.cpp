@@ -1,9 +1,10 @@
 #include "logger.h"
 #include <Arduino.h>
 
-void loggerInit() {
+bool loggerInit(void) {
     Serial.begin(115200);
     logInfo("Logger Initialized.");
+    return true;
 }
 
 void logInfo(const char* message) {

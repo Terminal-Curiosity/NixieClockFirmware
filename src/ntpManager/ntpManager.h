@@ -1,5 +1,5 @@
 #pragma once
 
-void ntpManagerInit();
+bool ntpManagerInit(void);
 void ntpRequestTimeUpdate();
 

@@ -2,5 +2,5 @@
 
 #include <WiFi.h>
 
-void wifi_init();
+bool wifi_init(void);
 

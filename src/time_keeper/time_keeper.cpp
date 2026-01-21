@@ -8,7 +8,7 @@ static volatile bool oneSecondFlag = false;  // Flag set by the one second timer
 static esp_timer_handle_t one_sec_tick_timer_handle; // One second timer to increment clock time
 static void IRAM_ATTR one_sec_tick_timer_callback(void* arg);
 
-void timeKeeperInit() {
+bool timeKeeperInit(void) {
   esp_timer_create_args_t one_sec_tick_timer_args = {
       .callback = &one_sec_tick_timer_callback, 
       .name = "one_sec_tick_timer"           
@@ -19,6 +19,7 @@ void timeKeeperInit() {
 
   currentTimeSec = 0; // Initialize time to midnight
   logInfo("Time Keeper Initialized.");
+  return true;
 }
 
 void timebaseTick() {

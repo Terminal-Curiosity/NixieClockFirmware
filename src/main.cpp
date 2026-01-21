@@ -1,29 +1,12 @@
-#include "config.h"
-#include "ldr/ldr.h"
+#include "setup/setup.h"
+#include "time_keeper/time_keeper.h"
+#include "LDR/ldr.h"
 #include "nixie_tubes/nixie_tubes.h"
 #include "leds/leds.h"
-#include "time_keeper/time_keeper.h"
-#include "I2C/I2C.h"
-#include "wifi/wifi.h"
-#include "HVPSU/hvpsu.h"
 #include "ntpManager/ntpManager.h"
-#include "logger/logger.h"
-#include "secrets.h" //not included in repo for security reasons
 
 
-void setup() {
-  loggerInit();
-  i2cInit();
-  hvpsuInit();
-  ldrInit();
-  ledsInit();
-  wifi_init();
-  ntpManagerInit();
-  timeKeeperInit();
-  logInfo("Setup Complete.");
-  hvpsuEnable();
-}
-
+void setup();
 
 void loop() {
   if(consumeOneSecondTick())

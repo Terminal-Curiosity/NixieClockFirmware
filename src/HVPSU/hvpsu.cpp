@@ -4,11 +4,12 @@
 
 static bool hv_is_enabled = false; // Track HV PSU state
 
-void hvpsuInit()
+bool hvpsuInit(void)
 {
     pinMode(HV_enable_pin,OUTPUT); //initialise the HV pin as output 
     hvpsuDisable(); //set HV PSU to disabled state at startup
     logInfo("HV PSU Initialized.");
+    return true;
 }
 
 void hvpsuEnable()

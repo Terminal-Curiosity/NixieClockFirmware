@@ -18,12 +18,12 @@ static void hasDayChanged();
 static void ntpUpdate();
 static const char* wifiStatusToString(wl_status_t status);
 
-void ntpManagerInit() {
+bool ntpManagerInit(void) {
     WiFi.mode(WIFI_OFF);
 
-    logInfo("NTP Manager Initialized."); 
-}   
-
+    logInfo("NTP Manager Initialized.");
+    return true;
+}
 void ntpRequestTimeUpdate() {
 
     hasDayChanged();
