@@ -1,6 +1,7 @@
 #include "time_keeper.h"
 #include <Arduino.h>
 #include <esp_timer.h> 
+#include "logger/logger.h"
 
 static uint32_t currentTimeSec; // current time in seconds since midnight
 static volatile bool oneSecondFlag = false;  // Flag set by the one second timer ISR
@@ -10,13 +11,14 @@ static void IRAM_ATTR one_sec_tick_timer_callback(void* arg);
 void timeKeeperInit() {
   esp_timer_create_args_t one_sec_tick_timer_args = {
       .callback = &one_sec_tick_timer_callback, 
-      .name = "one_sec_tick_timer"            
+      .name = "one_sec_tick_timer"           
   };
 
   esp_timer_create(&one_sec_tick_timer_args, &one_sec_tick_timer_handle);
   esp_timer_start_periodic(one_sec_tick_timer_handle, 1000000);
 
   currentTimeSec = 0; // Initialize time to midnight
+  logInfo("Time Keeper Initialized.");
 }
 
 void timebaseTick() {

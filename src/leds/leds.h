@@ -4,7 +4,7 @@
 #include <Adafruit_NeoPixel.h>
 
 void ledsInit();
-void ledSlowRainbowFade();
+void ledSlowRainbowFade(uint16_t updateDelayTime = 100);
 void setFourPixelsEqual(uint32_t color);
 
 

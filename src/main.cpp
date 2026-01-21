@@ -7,23 +7,21 @@
 #include "wifi/wifi.h"
 #include "HVPSU/hvpsu.h"
 #include "ntpManager/ntpManager.h"
+#include "logger/logger.h"
 #include "secrets.h" //not included in repo for security reasons
 
-void setup() {
-  Serial.begin(115200);
-  Serial.println("Initialising Setup...");
 
+void setup() {
+  loggerInit();
   i2cInit();
   hvpsuInit();
   ldrInit();
   ledsInit();
-  timeKeeperInit(); 
   wifi_init();
   ntpManagerInit();
-
-  Serial.println("Setup Complete.");
+  timeKeeperInit();
+  logInfo("Setup Complete.");
   hvpsuEnable();
-  Serial.println("HV PSU now Enabled.");
 }
 
 
@@ -37,6 +35,7 @@ void loop() {
 
  ledSlowRainbowFade();
  ntpRequestTimeUpdate();
+ //tubeConditioningCheck();
 
 yield(); //yield to allow background processes to run - wifi etc.
 

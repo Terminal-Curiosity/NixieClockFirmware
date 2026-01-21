@@ -1,9 +1,9 @@
 #include "ntpManager.h"
 #include "secrets.h"
 #include "time_keeper/time_keeper.h"
-#include <Arduino.h>
 #include <WiFi.h>
 #include <time.h>
+#include "logger/logger.h"
 
 static bool wifiStarted = false;
 static bool ntpRequested = false;
@@ -21,7 +21,7 @@ static const char* wifiStatusToString(wl_status_t status);
 void ntpManagerInit() {
     WiFi.mode(WIFI_OFF);
 
-    Serial.println("NTP Manager Initialized."); 
+    logInfo("NTP Manager Initialized."); 
 }   
 
 void ntpRequestTimeUpdate() {
@@ -42,12 +42,14 @@ void ntpRequestTimeUpdate() {
 
         if(status == WL_CONNECTED && !ntpRequested) {
             ntpRequested = true;
-            Serial.println("WiFi connected, requesting NTP time...");
+            logInfo("WiFi connected, requesting NTP time...");
             configTzTime("ACST-9:30ACDT,M10.1.0,M4.1.0/3", "pool.ntp.org", "time.nist.gov");
         } 
 
     if (status != lastStatus) {
-        Serial.printf("WiFi status changed: %s\n", wifiStatusToString(status));
+        char buffer[100];
+        snprintf(buffer, sizeof(buffer), "WiFi status changed: %s", wifiStatusToString(status));
+        logInfo(buffer);
         lastStatus = status;
     }
         ntpUpdate();
@@ -68,7 +70,12 @@ static void ntpUpdate()
 
         localtime_r(&now, &currentTime);
         lastSyncDay = currentTime.tm_yday;
-        Serial.print("NTP time obtained: " + String(asctime(&currentTime)));
+        char timeStr[32];
+        strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", &currentTime);
+        char buffer[100];
+        snprintf(buffer, sizeof(buffer), "NTP time obtained: %s", timeStr);
+        logInfo(buffer);
+        //logInfo("NTP time obtained: " + String(asctime(&currentTime)));
 
         // Set the time in the timekeeper
         uint32_t secondsSinceMidnight = currentTime.tm_hour * 3600 + currentTime.tm_min * 60 + currentTime.tm_sec;
@@ -83,7 +90,7 @@ static void ntpUpdate()
         needsDailySync = false;   // Daily sync done
         lastSyncDay = currentTime.tm_yday;
 
-        Serial.println("WiFi disconnected after NTP update.");
+        logInfo("WiFi disconnected after NTP update.");
     } 
 }
 
@@ -93,8 +100,8 @@ static void hasDayChanged() {
         return; // Time not set yet
     }
 
-    struct tm currentTime;      // create standard struct to hold time info
-    localtime_r(&now, &currentTime); //convert current time to struct tm format
+    struct tm currentTime;      // create standard tm struct to hold time info
+    localtime_r(&now, &currentTime); //convert current time now to struct tm format
     if(currentTime.tm_yday != lastSyncDay) {
         //check if day of year has changed since last sync
         lastSyncDay = currentTime.tm_yday;
