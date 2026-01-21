@@ -1,5 +1,3 @@
-
-#include <stdint.h>
 #include <Wire.h>
 
 // --- I2C Write Helper Function ---
