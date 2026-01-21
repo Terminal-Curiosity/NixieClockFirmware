@@ -31,6 +31,19 @@ void timebaseTick() {
 
 void setTimeSecondsOfTheDay(uint32_t seconds) {
   currentTimeSec = seconds;
+
+  uint32_t h = seconds / 3600;
+  uint32_t m = (seconds % 3600) / 60;
+  uint32_t s = seconds % 60;
+
+  char buffer[64];
+  snprintf(buffer, sizeof(buffer),
+             "Time updated to %02lu:%02lu:%02lu",
+             (unsigned long)h,
+             (unsigned long)m,
+             (unsigned long)s);
+
+    logInfo(buffer);
 }
 
 uint32_t getTime() {

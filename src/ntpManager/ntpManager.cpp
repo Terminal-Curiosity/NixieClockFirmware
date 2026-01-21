@@ -84,13 +84,15 @@ static void ntpUpdate()
         //time set successfully, disconnect wifi to save power
         WiFi.disconnect(true);
         WiFi.mode(WIFI_OFF);
+        logInfo("WiFi disconnected after NTP update.");
+
         wifiStarted = false; 
         ntpRequested = false; // Reset for next update
         needsInitialSync = false; // Initial sync done  
         needsDailySync = false;   // Daily sync done
         lastSyncDay = currentTime.tm_yday;
 
-        logInfo("WiFi disconnected after NTP update.");
+        
     } 
 }
 
