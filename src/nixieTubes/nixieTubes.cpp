@@ -1,6 +1,6 @@
-#include "nixie_tubes.h"
+#include "nixieTubes.h"
 #include "pcf8574/pcf8574.h"
-#include "time_keeper/time_keeper.h"
+#include "timeKeeper/timeKeeper.h"
 
 static constexpr uint8_t digit_to_pin_mapping[] = {9,0,8,4,12,2,10,6,14,1}; 
 //lookup table to map digit values (0-9) to corresponding nixie digits as per wiring between K155ID1 and PCF8574

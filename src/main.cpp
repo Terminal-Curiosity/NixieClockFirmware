@@ -1,7 +1,7 @@
 #include "setup/setup.h"
-#include "time_keeper/time_keeper.h"
+#include "timeKeeper/timeKeeper.h"
 #include "LDR/ldr.h"
-#include "nixie_tubes/nixie_tubes.h"
+#include "nixieTubes/nixieTubes.h"
 #include "leds/leds.h"
 #include "ntpManager/ntpManager.h"
 
@@ -16,10 +16,9 @@ void loop() {
     ldrReadSave();          //read LDR value and save it once per second
   }
 
- ledSlowRainbowFade();
- ntpRequestTimeUpdate();
- //tubeConditioningCheck();
+  ledSlowRainbowFade();
+  ntpRequestTimeUpdate();
+  //tubeConditioning();
 
-yield(); //yield to allow background processes to run - wifi etc.
-
+  yield(); //yield to allow background processes to run - wifi etc.
 }
