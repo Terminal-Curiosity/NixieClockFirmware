@@ -13,7 +13,7 @@ bool dayHasChanged(void);
 
 bool timeIsValid();
 time_t reportSystemTimeUTC(void);
-bool reportLocalTime(struct tm& currentTime);
+void reportLocalTime(struct tm& currentTime);
 
 void startNtpTimeSync(void);
 void kickNtpTimeSync(void);

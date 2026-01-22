@@ -99,7 +99,7 @@ static bool ntpSyncStarted = false;
 }
 
 void kickNtpTimeSync(void)
-//call this function to trigger a system time reset with NTP time 
+//call this function to trigger a system time sync with NTP time 
 {
   configTzTime("ACST-9:30ACDT,M10.1.0,M4.1.0/3", 
     "pool.ntp.org", "time.nist.gov");
@@ -109,11 +109,10 @@ time_t reportSystemTimeUTC() {
     return time(nullptr);
 }
 
-bool reportLocalTime(struct tm& currentTime)
+void reportLocalTime(struct tm& currentTime)
 {
   time_t now = reportSystemTimeUTC();
   localtime_r(&now, &currentTime);
-  return true;
 }
 
 bool dayHasChanged() {
@@ -123,17 +122,16 @@ bool dayHasChanged() {
     }
 
     struct tm currentTime;
-    if(reportLocalTime(currentTime))
-    {
+    reportLocalTime(currentTime);
         if (currentTime.tm_yday != lastSyncDay) {
-        return true;
+          lastSyncDay = currentTime.tm_yday;
+          return true;
       }
-    }
     return false;
     
 }
 
 bool timeIsValid(void)
 { 
-  return(reportSystemTimeUTC() > 17000000000);  
+  return(reportSystemTimeUTC() > 1700000000);  
 }

@@ -1,68 +1,66 @@
 #include "ntpManager.h"
-#include "secrets.h"
+//#include "secrets.h"
 #include "timeKeeper/timeKeeper.h"
-#include <WiFi.h>
+//#include <WiFi.h>
 #include <time.h>
 #include "logger/logger.h"
 #include "wifi/wifi.h"
 
-
 static bool ntpRequested = false;
 static bool needsInitialSync = true;
 static bool needsDailySync = true;  
+static bool needsSyncNow = true;
 
 static constexpr uint32_t NTP_TRIGGER_TIME_SEC = 
     3 * 3600 + 0 * 60 + 10; //NTP trigger time is 3:00:10 AM
 
 static int lastSyncDay = -1;
     
-static void ntpUpdate();
+static void ntpUpdate(void);
 
 void ntpRequestTimeUpdate() {
 
-    if(dayHasChanged()){
-    return;
-    }
+    time_t now = reportSystemTimeUTC();
+    struct tm currentTime;
+    reportLocalTime(currentTime);
+
+    needsDailySync = dayHasChanged();
+    if(currentTime.tm_hour * 3600
+        + currentTime.tm_min *60 
+        + currentTime.tm_sec >= NTP_TRIGGER_TIME_SEC)
+        {
+            needsSyncNow = true;
+        }
+
 
     // Check if it's time to request an NTP update or if its the initial sync
     // checks if time is > 3:00:10 AM AND daily sync is needed
-    if(needsInitialSync || (reportSystemTime() > NTP_TRIGGER_TIME_SEC && needsDailySync)) {
+    if(needsInitialSync || (needsSyncNow && needsDailySync)) {
+        wifiStart();
 
-    if(!wifiStarted) {
-        lastStatus = WL_IDLE_STATUS;
-        WiFi.mode(WIFI_STA);
-        WiFi.begin(WIFI_SSID, WIFI_PASS);
-        wifiStarted = true;
-        }
-        wl_status_t status = WiFi.status();
-
-        if(status == WL_CONNECTED && !ntpRequested) {
+        if(wifiIsConnected() && !ntpRequested) {
             ntpRequested = true;
-            logInfo("WiFi connected, requesting NTP time...");
+            logInfo("Requesting NTP time...");
             configTzTime("ACST-9:30ACDT,M10.1.0,M4.1.0/3", "pool.ntp.org", "time.nist.gov");
-        } 
-
-    if (status != lastStatus) {
-        char buffer[100];
-        snprintf(buffer, sizeof(buffer), "WiFi status changed: %s", wifiStatusToString(status));
-        logInfo(buffer);
-        lastStatus = status;
-    }
-        ntpUpdate();
+            bool a = wifiStatusHasChanged();
+            ntpUpdate();
+        }
     }
 }
 
-static void ntpUpdate()
+static void ntpUpdate(void)
 {
     if(!ntpRequested) {
         return; // NTP not requested yet
     }
 
     time_t now = reportSystemTimeUTC();
-    if(timeIsValid) {
-        //17b represents a unix time in 2024, so we have a valid time value
+    struct tm currentTime;
+    
 
-        struct tm currentTime;
+    if(timeIsValid()) {
+
+        kickNtpTimeSync();
 
         localtime_r(&now, &currentTime);
 
@@ -72,22 +70,16 @@ static void ntpUpdate()
         char buffer[100];
         snprintf(buffer, sizeof(buffer), "NTP time obtained: %s", timeStr);
         logInfo(buffer);
-        //logInfo("NTP time obtained: " + String(asctime(&currentTime)));
-
-        // Set the time in the timekeeper
-        uint32_t secondsSinceMidnight = currentTime.tm_hour * 3600 + currentTime.tm_min * 60 + currentTime.tm_sec;
-        setTimeSecondsOfTheDay(secondsSinceMidnight);
 
         //time set successfully, disconnect wifi to save power
         WiFi.disconnect(true);
         WiFi.mode(WIFI_OFF);
         logInfo("WiFi disconnected after NTP update.");
 
-        wifiStarted = false; 
         ntpRequested = false; // Reset for next update
         needsInitialSync = false; // Initial sync done  
         needsDailySync = false;   // Daily sync done
-        lastSyncDay = currentTime.tm_yday;
+        //lastSyncDay = currentTime.tm_yday;
 
         
     } 

@@ -5,15 +5,19 @@
 static constexpr uint8_t digit_to_pin_mapping[] = {9,0,8,4,12,2,10,6,14,1}; 
 //lookup table to map digit values (0-9) to corresponding nixie digits as per wiring between K155ID1 and PCF8574
 
+struct tm currentTime;
+
 void showCurrentTime()
 {
   if(!timeIsValid())
   {
+    tubesDisplayValue(0);
     return;
   }
-  uint8_t hours = getTime() / 3600;
-  uint8_t minutes = (getTime() % 3600) / 60;
-  uint8_t seconds = getTime() % 60;
+  reportLocalTime(currentTime);
+  uint8_t hours = currentTime.tm_hour;
+  uint8_t minutes = currentTime.tm_min;
+  uint8_t seconds = currentTime.tm_sec;
 
   //int16_t displayTime = hours * 100 + minutes; //display HHMM only
   int16_t displayTime = minutes * 100 + seconds; //display MMSS only
