@@ -7,6 +7,10 @@ static constexpr uint8_t digit_to_pin_mapping[] = {9,0,8,4,12,2,10,6,14,1};
 
 void showCurrentTime()
 {
+  if(!timeIsValid())
+  {
+    return;
+  }
   uint8_t hours = getTime() / 3600;
   uint8_t minutes = (getTime() % 3600) / 60;
   uint8_t seconds = getTime() % 60;

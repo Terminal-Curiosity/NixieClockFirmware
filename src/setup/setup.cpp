@@ -16,7 +16,6 @@ static bool hvpsuOk = false;
 static bool ldrOk = false;
 static bool ledsOk = false;
 static bool wifiOk = false;
-static bool ntpOk = false;
 static bool timeKeeperOk = false;
 
 void setup() 
@@ -26,8 +25,7 @@ void setup()
   hvpsuOk = hvpsuInit();
   ldrOk = ldrInit();
   ledsOk = ledsInit();
-  wifiOk = wifi_init();
-  ntpOk = ntpManagerInit();
+  wifiOk = wifiInit();
   timeKeeperOk = timeKeeperInit();
   
   hvpsuEnable();

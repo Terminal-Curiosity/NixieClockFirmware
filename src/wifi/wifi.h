@@ -2,5 +2,6 @@
 
 #include <WiFi.h>
 
-bool wifi_init(void);
+bool wifiInit(void);
 
+const char* wifiStatusToString(wl_status_t status);
