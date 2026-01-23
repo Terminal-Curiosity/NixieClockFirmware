@@ -7,5 +7,6 @@ wl_status_t wifiStatusReport();
 
 bool wifiIsConnected(void);
 void wifiStart(void);
-bool wifiStatusHasChanged();
+void wifiStop(void);
+void logStatusIfChanged();
 const char* wifiStatusToString(wl_status_t status);
