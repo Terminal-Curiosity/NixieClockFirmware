@@ -2,7 +2,7 @@
 #include "ldr/ldr.h"
 #include "nixieTubes/nixieTubes.h"
 #include "leds/leds.h"
-#include "timeKeeper/timeKeeper.h"
+#include "time/timeKeeper.h"
 #include "I2C/I2C.h"
 #include "wifi/wifi.h"
 #include "HVPSU/hvpsu.h"

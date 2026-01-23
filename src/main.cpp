@@ -1,5 +1,6 @@
 #include "setup/setup.h"
-#include "timeKeeper/timeKeeper.h"
+#include "time/timeKeeper.h"
+#include "time/timeReporter.h"
 #include "LDR/ldr.h"
 #include "nixieTubes/nixieTubes.h"
 #include "leds/leds.h"
@@ -11,13 +12,12 @@ void setup();
 void loop() {
   if(consumeOneSecondTick())
   {
-    //timebaseTick();         //increment the time by one second
     showCurrentTime();      //update the tube display to show the new time
     ldrReadSave();          //read LDR value and save it once per second
-    ledSlowRainbowFade(10);
+    
   }
 
-  //ledSlowRainbowFade();
+  ledSlowRainbowFade();
   ntpRequestTimeUpdate();
   //tubeConditioning();
 

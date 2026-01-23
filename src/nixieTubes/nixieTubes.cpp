@@ -1,6 +1,7 @@
 #include "nixieTubes.h"
 #include "pcf8574/pcf8574.h"
-#include "timeKeeper/timeKeeper.h"
+#include "time/timeKeeper.h"
+#include "time/timeReporter.h"
 
 static constexpr uint8_t digit_to_pin_mapping[] = {9,0,8,4,12,2,10,6,14,1}; 
 //lookup table to map digit values (0-9) to corresponding nixie digits as per wiring between K155ID1 and PCF8574
@@ -14,7 +15,8 @@ void showCurrentTime()
     tubesDisplayValue(0);
     return;
   }
-  reportLocalTime(currentTime);
+  
+  timeReporter_nowLocalTime(currentTime);
   uint8_t hours = currentTime.tm_hour;
   uint8_t minutes = currentTime.tm_min;
   uint8_t seconds = currentTime.tm_sec;
@@ -28,7 +30,7 @@ void tubesDisplayValue(int value_to_display = 0)
 //update the tube display to show the value passed into the function.
 //NOTE: tubes 1 and 3 have non-standard digit wiring, so the upper nibbles must be remapped before being used.
 {
-
+  value_to_display %= 10000;
 
   //display upper pair
   uint8_t upper = digit_to_pin_mapping[value_to_display / 1000];
