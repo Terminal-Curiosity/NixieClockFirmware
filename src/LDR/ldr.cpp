@@ -2,7 +2,7 @@
 #include "config.h"
 #include "logger/logger.h"
 
-static uint8_t ldrValue=0;
+static uint16_t ldrValue=0;
 int current_brightness_percent = MAX_BRIGHTNESS_PERCENT;
 
 bool ldrInit(void)
@@ -18,7 +18,7 @@ void ldrReadSave()
     ldrValue = analogRead(LDR_pin); 
 }
 
-uint8_t ldrReportRawValue()
+uint16_t ldrReportRawValue()
 {
     return ldrValue;
 }

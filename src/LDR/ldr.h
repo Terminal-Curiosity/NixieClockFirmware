@@ -2,7 +2,7 @@
 
 #include <arduino.h>
 
-uint8_t ldrReportRawValue();
+uint16_t ldrReportRawValue();
 uint8_t ldrReportValueAsPercentage();
 
 void ldrReadSave(void);
