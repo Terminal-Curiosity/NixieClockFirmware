@@ -104,7 +104,7 @@ wl_status_t wifiStatusReport()
     return (WiFi.status());
 }
 
-void logStatusIfChanged()
+void logStatusIfChanged() 
 {
     wl_status_t status = wifiStatusReport();
 
