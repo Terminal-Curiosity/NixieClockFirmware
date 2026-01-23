@@ -2,4 +2,4 @@
 
 #include <Wire.h>
 
-void i2cInit(void);
+bool i2cInit(void);

@@ -2,7 +2,7 @@
 
 #include "config.h"
 
-void hvpsuInit();
+bool hvpsuInit(void);
 void hvpsuEnable();
 void hvpsuDisable();
 bool hvpsuIsEnabled();

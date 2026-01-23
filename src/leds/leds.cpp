@@ -1,22 +1,25 @@
 #include "leds.h"
 #include "config.h"
+#include "logger/logger.h"
 
 static Adafruit_NeoPixel strip = Adafruit_NeoPixel(4, ledStringDin, NEO_GRB + NEO_KHZ800);
 
 static uint16_t hue = 0;
 static uint32_t color = colorHSV(hue, 1.0, 1.0); //hue from 0-360, saturation 0-1, value 0-1
 
-void ledsInit() {
+bool ledsInit(void) {
     pinMode(ledStringDin,OUTPUT);
     strip.begin();              // Initialize NeoPixel strip
     strip.setBrightness(255);   // set maximum brightness
     strip.show();               // Turn off all LEDs at start
+    logInfo("LEDs Initialized.");
+    return true;
 }
 
-void ledSlowRainbowFade() {
+void ledSlowRainbowFade(uint16_t updateDelayTime) {
 
   static uint32_t lastUpdateMs = 0;
-  static const uint16_t updateIntervalMs = 100; // Update rainbow colour every n milliseconds
+  const uint16_t updateIntervalMs = updateDelayTime; // Update rainbow colour every n milliseconds
   uint32_t currentMs = millis();
 
   if (currentMs - lastUpdateMs < updateIntervalMs) {

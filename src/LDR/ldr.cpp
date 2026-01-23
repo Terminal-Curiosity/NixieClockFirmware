@@ -1,13 +1,16 @@
 #include "ldr.h"
 #include "config.h"
+#include "logger/logger.h"
 
-static uint8_t ldrValue=0;
+static uint16_t ldrValue=0;
 int current_brightness_percent = MAX_BRIGHTNESS_PERCENT;
 
-void ldrInit()
+bool ldrInit(void)
 {
     pinMode(LDR_pin, INPUT);  
     analogSetAttenuation(ADC_11db); // sets attenuation of LDR input (otherwise it will be 0-1V)
+    logInfo("LDR Initialized.");
+    return true;
 }
 
 void ldrReadSave()
@@ -15,7 +18,7 @@ void ldrReadSave()
     ldrValue = analogRead(LDR_pin); 
 }
 
-uint8_t ldrReportRawValue()
+uint16_t ldrReportRawValue()
 {
     return ldrValue;
 }
