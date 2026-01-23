@@ -19,7 +19,7 @@ bool ledsInit(void) {
 void ledSlowRainbowFade(uint16_t updateDelayTime) {
 
   static uint32_t lastUpdateMs = 0;
-  static const uint16_t updateIntervalMs = updateDelayTime; // Update rainbow colour every n milliseconds
+  const uint16_t updateIntervalMs = updateDelayTime; // Update rainbow colour every n milliseconds
   uint32_t currentMs = millis();
 
   if (currentMs - lastUpdateMs < updateIntervalMs) {
