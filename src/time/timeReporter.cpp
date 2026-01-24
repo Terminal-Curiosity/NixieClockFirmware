@@ -12,7 +12,7 @@ int timeReporter_localDayofYear()
   return t.tm_yday;
 }
 
-uint32_t timeReporter_secondsSinceMidnight()
+int32_t timeReporter_secondsSinceMidnight()
 {
   if (!timeIsValid()) return -1;
   time_t now = timeReporter_nowUtc();
