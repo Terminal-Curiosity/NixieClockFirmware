@@ -12,14 +12,13 @@ void setup();
 void loop() {
   if(consumeOneSecondTick())
   {
-    showCurrentTime();      //update the tube display to show the new time
+    nixieTubesUpdate();      //update the tube display to show the new time
     ldrReadSave();          //read LDR value and save it once per second
     
   }
 
   ledSlowRainbowFade();
   ntpRequestTimeUpdate();
-  //tubeConditioning();
 
   yield(); //yield to allow background processes to run - wifi etc.
 }
