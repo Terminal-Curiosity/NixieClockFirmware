@@ -21,4 +21,4 @@ void loop() {
   ntpRequestTimeUpdate();
 
   yield(); //yield to allow background processes to run - wifi etc.
-}
+} 
