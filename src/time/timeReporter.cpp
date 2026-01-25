@@ -9,7 +9,7 @@ int timeReporter_localDayofYear()
   time_t now = timeReporter_nowUtc();
   struct tm t;
   localtime_r(&now, &t);
-  return t.tm_yday;
+  return t.tm_yday + 1;
 }
 
 int32_t timeReporter_secondsSinceMidnight()
