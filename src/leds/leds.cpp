@@ -17,7 +17,7 @@ bool ledsInit(void) {
 }
 
 void updateLeds()
-//generic update function with  future capability for many different led effects 
+//generic update function with  future capability to call many different led effects 
 {
   ledSlowRainbowFade();
 }

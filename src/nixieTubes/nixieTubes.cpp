@@ -10,7 +10,7 @@ static constexpr uint8_t digit_to_pin_mapping[] = {9,0,8,4,12,2,10,6,14,1};
 
 struct tm currentTime;
 static DisplayMode resolveDisplayMode();
-static void renderConditioning(uint16_t);
+static void renderConditioning();
 
 static DisplayMode previousDisplayMode = MODE_UNKNOWN;
 
@@ -63,7 +63,7 @@ const char* displayModeToString(DisplayMode currentDisplayMode)
         case MODE_CONDITIONING:  return "CONDITIONING";
         case MODE_SET_TIME:      return "SET_TIME";
         case MODE_ALARM_RINGING: return "ALARM RINGING";
-        case MODE_ALARM_SET:     return "CONDITIONING";
+        case MODE_ALARM_SET:     return "SET_ALARM";
         default:                 return "UNKNOWN";
     }
 }

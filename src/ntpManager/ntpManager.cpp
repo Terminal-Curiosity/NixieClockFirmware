@@ -24,7 +24,7 @@ void ntpRequestTimeUpdate() {
     }
 
     int today = timeReporter_localDayofYear();
-    bool syncedToday = timeIsValid() && today > 0 && (lastNtpSyncDay == today); //needs a daily sync if time is invalid or the day has changed
+    bool syncedToday = timeIsValid() && today >= 0 && (lastNtpSyncDay == today); //needs a daily sync if time is invalid or the day has changed
 
     struct tm currentTime;
     timeReporter_nowLocalTime(currentTime);
