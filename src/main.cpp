@@ -13,10 +13,10 @@ void loop() {
   if(consumeOneSecondTick())
   {
     nixieTubesUpdate();      //update the tube display to show the new time
-    ldrReadSave();          //read LDR value and save it once per second
+    
     
   }
-
+  ldrReadSave();          //read LDR value and save it
   ledSlowRainbowFade();
   ntpRequestTimeUpdate();
 
