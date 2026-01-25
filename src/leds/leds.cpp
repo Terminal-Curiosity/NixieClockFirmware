@@ -38,19 +38,23 @@ void updateLeds()
 
 void brightnessDetectUpdate()
 {
-    if(ldrReportValueAsPercentage() < BRIGHTNESS_THRESHOLD)
+  uint8_t hysteresisOffset = 5;
+  static const char* message = "default";
+    if(ldrReportValueAsPercentage() < BRIGHTNESS_THRESHOLD - hysteresisOffset)
   {
     currentBrightness = 50;
+    message = "Dim";
   }
-  else
+  else if(ldrReportValueAsPercentage() > BRIGHTNESS_THRESHOLD + hysteresisOffset)
   {
     currentBrightness = 255;
+    message = "Bright";
   }
 
   if(currentBrightness != previousBrightness)
   {
      strip.setBrightness(currentBrightness);
-     logInfo("LED brightness changed: %u", currentBrightness);
+     logInfo("LED brightness changed: %s", message);
      previousBrightness = currentBrightness;
   }
 }
