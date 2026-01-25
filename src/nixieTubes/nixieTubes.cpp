@@ -13,6 +13,7 @@ static DisplayMode resolveDisplayMode();
 void renderConditioning();
 
 static DisplayMode previousDisplayMode = MODE_UNKNOWN;
+static uint16_t previousValueToDisplay = -1;
 
 const char* displayModeToString(DisplayMode);
 
@@ -87,20 +88,20 @@ void renderNormalTime()
 {
   if(!timeIsValid())
   {
-    tubesDisplayValue(6666);
+    tubesDisplayValue(8888);
     return;
   }
+  
   
   timeReporter_nowLocalTime(currentTime);
   uint8_t hours = currentTime.tm_hour;
   uint8_t minutes = currentTime.tm_min;
   uint8_t seconds = currentTime.tm_sec;
 
-  //int16_t displayTime = hours * 100 + minutes; //display HHMM only
-  int16_t displayTime = minutes * 100 + seconds; //display MMSS only
-
+  int16_t displayTime = hours * 100 + minutes; //display HHMM only
+  //uint16_t displayTime = minutes * 100 + seconds; //display MMSS only
   tubesDisplayValue(displayTime);
-  }
+}
 
 static DisplayMode resolveDisplayMode()
 {
@@ -128,10 +129,6 @@ void tubesDisplayValue(uint16_t value_to_display)
   {
   value_to_display %= 10000;
   }
-  if(value_to_display <0)
-  {
-    value_to_display = 0;
-  }
 
   //display upper pair
   uint8_t upper = digit_to_pin_mapping[value_to_display / 1000];
@@ -146,5 +143,12 @@ void tubesDisplayValue(uint16_t value_to_display)
   lower = digit_to_pin_mapping[(value_to_display % 10)];
   uint8_t data_for_pcf1 = upper | lower;
   pcf8574WriteOneByte(PCF8574_ADDRESS_1, data_for_pcf1); //lower digits
+  
+  
+  if(value_to_display != previousValueToDisplay)
+  {
+    logInfo("Display value changed: %i", value_to_display);
+    previousValueToDisplay = value_to_display;
+  }
   
 }
