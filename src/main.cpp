@@ -13,7 +13,7 @@ void loop() {
 
   nixieTubesUpdate();      //update the tube display
   ldrReadSave();           //read LDR value and save it
-  updateLeds();            //update Leds
+  updateLeds(20);          //update Leds
   ntpRequestTimeUpdate();  //run NTP update tests. update if valid
 
   yield(); //yield to allow background processes to run - wifi etc.

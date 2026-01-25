@@ -31,16 +31,17 @@ void updateLeds(uint16_t updateDelayTime)
 //generic update function with  future capability to call many different led effects 
 {
     static uint32_t lastUpdateMs = 0;
-    const uint16_t updateIntervalMs = 100;
+    //const uint16_t updateIntervalMs = 100;
     uint32_t currentMs = millis();
-    if (currentMs - lastUpdateMs < updateIntervalMs) {
+    if (currentMs - lastUpdateMs < updateDelayTime) {
     return; // Not enough time has passed, exit the function
   }
 
   lastUpdateMs = currentMs;
 
   brightnessDetectUpdate();
-  ledSlowRainbowFade();
+  //ledSlowRainbowFade(100);
+  ledSlowRainbowWave();
 }
 
 void brightnessDetectUpdate()
@@ -62,10 +63,27 @@ void brightnessDetectUpdate()
   }
 }
 
-void ledSlowRainbowFade(uint16_t updateDelayTime) {
+void ledSlowRainbowFade() {
     setFourPixelsEqual(color);
     hue = (hue + 1) % 360;
     color = colorHSV(hue, 1.0, 1.0);
+}
+
+void ledSlowRainbowWave() {
+
+  uint16_t pixel1hue = hue;
+  uint16_t pixel2hue = (hue+20)%360;
+  uint16_t pixel3hue = (hue+40)%360;
+  uint16_t pixel4hue = (hue+60)%360;
+
+  strip.setPixelColor(0, colorHSV(pixel1hue, 1.0, 1.0));  
+  strip.setPixelColor(1, colorHSV(pixel2hue, 1.0, 1.0));
+  strip.setPixelColor(2, colorHSV(pixel3hue, 1.0, 1.0));
+  strip.setPixelColor(3, colorHSV(pixel4hue, 1.0, 1.0));
+  strip.show();
+
+  hue = (hue + 1) % 360;
+  //color = colorHSV(hue, 1.0, 1.0);
 }
 
 void setFourPixelsEqual(uint32_t color) {
