@@ -39,9 +39,15 @@ void nixieTubesUpdate()
       //renderAlarmSetUi();
       break;
 
+    case MODE_SECRET_TETRIS:
+      //renderConditioning();           // start secret tetris game
+      break;
+
     case MODE_CONDITIONING:
       renderConditioning();           // time 10s / sweep digit
       break;
+
+    
 
     case MODE_NORMAL_TIME:
     default:
@@ -147,7 +153,7 @@ void tubesDisplayValue(uint16_t value_to_display)
   
   if(value_to_display != previousValueToDisplay)
   {
-    logInfo("Display value changed: %i", value_to_display);
+    logInfo("Display value changed: %04u", value_to_display);
     previousValueToDisplay = value_to_display;
   }
   
