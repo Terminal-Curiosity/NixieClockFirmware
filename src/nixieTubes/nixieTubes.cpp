@@ -85,11 +85,11 @@ void renderConditioning()
 
 void renderNormalTime()
 {
-  // if(!timeIsValid())
-  // {
-  //   tubesDisplayValue(0);
-  //   return;
-  // }
+  if(!timeIsValid())
+  {
+    tubesDisplayValue(6666);
+    return;
+  }
   
   timeReporter_nowLocalTime(currentTime);
   uint8_t hours = currentTime.tm_hour;
