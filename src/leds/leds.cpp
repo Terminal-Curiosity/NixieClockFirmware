@@ -16,6 +16,12 @@ bool ledsInit(void) {
     return true;
 }
 
+void updateLeds()
+//generic update function with  future capability for many different led effects 
+{
+  ledSlowRainbowFade();
+}
+
 void ledSlowRainbowFade(uint16_t updateDelayTime) {
 
   static uint32_t lastUpdateMs = 0;
