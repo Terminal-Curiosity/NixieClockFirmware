@@ -50,7 +50,7 @@ void nixieTubesUpdate()
 
   if(currentDisplayMode != previousDisplayMode)
   {
-     logInfo("Mode changed: ", displayModeToString(currentDisplayMode));
+     logInfo("Display mode changed: %s", displayModeToString(currentDisplayMode));
      previousDisplayMode = currentDisplayMode;
   }
 

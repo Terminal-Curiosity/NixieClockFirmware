@@ -62,11 +62,9 @@ void wifiStart()
     attemptStartMs = nowMs;
     attemptInProgress = true;
 
-    char buffer[120];
-    snprintf(buffer, sizeof(buffer), "WiFi begin: trying SSID[%d]=%s",
+    logInfo("WiFi begin: trying SSID[%d]=%s",
                  currentCred, WIFI_CREDS[currentCred].WIFI_SSID);
-    logInfo(buffer);
-
+    logInfo("WiFi status changed: %s", wifiStatusToString(status));
         return;
     }
 
@@ -111,9 +109,7 @@ void logStatusIfChanged()
     if(status == lastLoggedStatus)
     {return;}
 
-     char buffer[100];
-     snprintf(buffer, sizeof(buffer), "WiFi status changed: %s", wifiStatusToString(status));
-     logInfo(buffer);
+     logInfo("WiFi status changed: %s", wifiStatusToString(status));
      lastLoggedStatus = status;
     
 }
