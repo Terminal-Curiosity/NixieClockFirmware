@@ -4,7 +4,7 @@
 
 static uint16_t ldrValue=0;
 int current_brightness_percent = MAX_BRIGHTNESS_PERCENT;
-static constexpr uint32_t LDR_READ_DELAY = 500; //add a delay for reading the LDR to prevent spam 
+static constexpr uint32_t LDR_READ_DELAY = 1000; //add a delay for reading the LDR to prevent spam 
 static uint32_t lastReadMs = 0;
 
 bool ldrInit(void)
