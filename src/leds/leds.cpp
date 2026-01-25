@@ -4,7 +4,7 @@
 #include "ldr/ldr.h" 
 
 static Adafruit_NeoPixel strip = Adafruit_NeoPixel(4, ledStringDin, NEO_GRB + NEO_KHZ800);
-static constexpr uint8_t BRIGHTNESS_THRESHOLD = 15;
+static constexpr uint8_t BRIGHTNESS_THRESHOLD = 20;
 
 void brightnessDetectUpdate();
 
@@ -40,12 +40,16 @@ void brightnessDetectUpdate()
 {
   uint8_t hysteresisOffset = 5;
   static const char* message = "default";
-    if(ldrReportValueAsPercentage() < BRIGHTNESS_THRESHOLD - hysteresisOffset)
+
+  currentBrightness = ldrReportValueAsPercentage();
+
+  //logInfo("brightness: %u", ldrReportValueAsPercentage());
+    if(currentBrightness < BRIGHTNESS_THRESHOLD - hysteresisOffset)
   {
     currentBrightness = 50;
     message = "Dim";
   }
-  else if(ldrReportValueAsPercentage() > BRIGHTNESS_THRESHOLD + hysteresisOffset)
+  else if(currentBrightness > BRIGHTNESS_THRESHOLD + hysteresisOffset)
   {
     currentBrightness = 255;
     message = "Bright";
