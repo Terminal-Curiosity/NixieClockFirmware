@@ -9,7 +9,6 @@
 // static esp_timer_handle_t one_sec_tick_timer_handle; // One second timer to increment clock time
 // static void IRAM_ATTR one_sec_tick_timer_callback(void* arg);
 
-
 bool timeKeeperInit(void) {
   // esp_timer_create_args_t one_sec_tick_timer_args = {
   //     .callback = &one_sec_tick_timer_callback, 
@@ -23,6 +22,24 @@ bool timeKeeperInit(void) {
   logInfo("Time Keeper Initialized.");
   return true;
 }
+
+void kickNtpTimeSync(void)
+//call this function to trigger a system time sync with NTP time 
+{
+  configTzTime("ACST-9:30ACDT,M10.1.0,M4.1.0/3", 
+    "pool.ntp.org", "time.nist.gov");
+}
+
+bool timeIsValid(void)
+{ 
+  return(timeReporter_nowUtc() > 1704067200);  
+}
+
+
+
+
+
+
 
 // static void IRAM_ATTR one_sec_tick_timer_callback(void* arg)
 // {
@@ -40,16 +57,6 @@ bool timeKeeperInit(void) {
 //     return true;
 // }
 
-void kickNtpTimeSync(void)
-//call this function to trigger a system time sync with NTP time 
-{
-  configTzTime("ACST-9:30ACDT,M10.1.0,M4.1.0/3", 
-    "pool.ntp.org", "time.nist.gov");
-}
 
-bool timeIsValid(void)
-{ 
-  return(timeReporter_nowUtc() > 1704067200);  
-}
 
 
