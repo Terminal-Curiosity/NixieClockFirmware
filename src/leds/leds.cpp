@@ -1,38 +1,65 @@
 #include "leds.h"
 #include "config.h"
 #include "logger/logger.h"
+#include "ldr/ldr.h" 
 
 static Adafruit_NeoPixel strip = Adafruit_NeoPixel(4, ledStringDin, NEO_GRB + NEO_KHZ800);
 
 static uint16_t hue = 0;
 static uint32_t color = colorHSV(hue, 1.0, 1.0); //hue from 0-360, saturation 0-1, value 0-1
+static float brightnessValue = 1.0;
+static constexpr uint8_t BRIGHTNESS_THRESHOLD = 15;
+
+void brightnessDetectUpdate();
+
+static uint8_t previousBrightness = 1;
+static uint8_t currentBrightness = 1;
 
 bool ledsInit(void) {
     pinMode(ledStringDin,OUTPUT);
     strip.begin();              // Initialize NeoPixel strip
-    strip.setBrightness(255);   // set maximum brightness
+    strip.setBrightness(1);     // set minimum brightness
     strip.show();               // Turn off all LEDs at start
     logInfo("LEDs Initialized.");
     return true;
 }
 
-void updateLeds()
+void updateLeds(uint16_t updateDelayTime)
 //generic update function with  future capability to call many different led effects 
 {
-  ledSlowRainbowFade();
-}
-
-void ledSlowRainbowFade(uint16_t updateDelayTime) {
-
-  static uint32_t lastUpdateMs = 0;
-  const uint16_t updateIntervalMs = updateDelayTime; // Update rainbow colour every n milliseconds
-  uint32_t currentMs = millis();
-
-  if (currentMs - lastUpdateMs < updateIntervalMs) {
+    static uint32_t lastUpdateMs = 0;
+    const uint16_t updateIntervalMs = 100;
+    uint32_t currentMs = millis();
+    if (currentMs - lastUpdateMs < updateIntervalMs) {
     return; // Not enough time has passed, exit the function
   }
 
   lastUpdateMs = currentMs;
+
+  brightnessDetectUpdate();
+  ledSlowRainbowFade();
+}
+
+void brightnessDetectUpdate()
+{
+    if(ldrReportValueAsPercentage() < BRIGHTNESS_THRESHOLD)
+  {
+    currentBrightness = 50;
+  }
+  else
+  {
+    currentBrightness = 255;
+  }
+
+  if(currentBrightness != previousBrightness)
+  {
+     strip.setBrightness(currentBrightness);
+     logInfo("LED brightness changed: %u", currentBrightness);
+     previousBrightness = currentBrightness;
+  }
+}
+
+void ledSlowRainbowFade(uint16_t updateDelayTime) {
     setFourPixelsEqual(color);
     hue = (hue + 1) % 360;
     color = colorHSV(hue, 1.0, 1.0);

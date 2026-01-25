@@ -10,7 +10,7 @@ static constexpr uint8_t digit_to_pin_mapping[] = {9,0,8,4,12,2,10,6,14,1};
 
 struct tm currentTime;
 static DisplayMode resolveDisplayMode();
-static void renderConditioning();
+void renderConditioning();
 
 static DisplayMode previousDisplayMode = MODE_UNKNOWN;
 
