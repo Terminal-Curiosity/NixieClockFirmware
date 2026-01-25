@@ -4,6 +4,7 @@
 constexpr int ledStringDin = 32;
 constexpr int HV_enable_pin = 23;     //active high
 constexpr int LDR_pin = 33;           //LDR connected to pin 33 (GPIO2)
+constexpr int ESP_LED = 2;
 
 //-----------LDR Configuration -------------------
 constexpr int LDR_BRIGHT_ADC_MIN = 100;     // Example: ADC reading for very bright light

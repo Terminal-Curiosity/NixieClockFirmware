@@ -16,6 +16,9 @@ static uint8_t previousBrightness = 1;
 static uint8_t currentBrightness = 1;
 
 bool ledsInit(void) {
+    pinMode(ESP_LED,OUTPUT);
+    digitalWrite(ESP_LED,LOW);  //explicitly disable ESP onboard LED
+    
     pinMode(ledStringDin,OUTPUT);
     strip.begin();              // Initialize NeoPixel strip
     strip.setBrightness(1);     // set minimum brightness
