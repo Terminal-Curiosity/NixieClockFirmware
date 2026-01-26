@@ -22,6 +22,20 @@ void logInfo(const char* message, ...) {
     Serial.println(buffer);
 }
 
+void logGame(const char* message, ...) {
+
+    char buffer[128];   
+
+    va_list args;
+    va_start(args, message);
+    vsnprintf(buffer, sizeof(buffer), message, args);
+    va_end(args);
+
+    Serial.print("[GAME] ");
+    Serial.println(buffer);
+}
+
+
 
 void logWarning(const char* message) {
     Serial.print("[WARNING] ");
