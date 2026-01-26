@@ -3,6 +3,8 @@
 #include "config.h"
 #include "logger/logger.h"
 #include "ldr/ldr.h" 
+#include "tetris.h"
+#include "time/timeReporter.h"
 
 
 static constexpr uint8_t BRIGHTNESS_THRESHOLD = 20;
@@ -12,6 +14,42 @@ static uint8_t previousBrightness = 1;
 static uint8_t currentBrightness = 1;
 
 void brightnessDetectUpdate();
+static void runTetrisDemo();
+static void runTetrisGame();
+static LedMode ledSchedulerChooseMode();
+static void ledModeEnter(LedMode m);
+static void runLedMode(LedMode m);
+
+static LedMode currentLedMode = LEDMODE_TETRIS_DEMO;
+static LedMode previousLedMode = LEDMODE_OFF;
+
+// LED display mode scheduler
+static constexpr LedMode hourlySchedule[24] = {
+  LEDMODE_TETRIS_DEMO,    // 00
+  LEDMODE_OFF,            // 01
+  LEDMODE_OFF,            // 02
+  LEDMODE_OFF,            // 03
+  LEDMODE_OFF,            // 04
+  LEDMODE_OFF,            // 05
+  LEDMODE_OFF,            // 06
+  LEDMODE_NIGHTRIDER,     // 07
+  LEDMODE_RAINBOW_FADE,   // 08
+  LEDMODE_BINARY_COUNTER, // 09
+  LEDMODE_TETRIS_DEMO,    // 10
+  LEDMODE_RAINBOW_WAVE,   // 11
+  LEDMODE_NIGHTRIDER,     // 12
+  LEDMODE_RAINBOW_FADE,   // 13
+  LEDMODE_BINARY_COUNTER, // 14
+  LEDMODE_TETRIS_DEMO,    // 15
+  LEDMODE_RAINBOW_WAVE,   // 16
+  LEDMODE_NIGHTRIDER,     // 17
+  LEDMODE_RAINBOW_FADE,   // 18
+  LEDMODE_BINARY_COUNTER, // 19
+  LEDMODE_TETRIS_DEMO,    // 20
+  LEDMODE_RAINBOW_WAVE,   // 21
+  LEDMODE_NIGHTRIDER,     // 22
+  LEDMODE_BINARY_COUNTER, // 23
+};
 
 bool ledsInit(void) {
     pinMode(ESP_LED,OUTPUT);
@@ -26,41 +64,42 @@ bool ledsInit(void) {
 }
 
 void updateLeds()
-//generic update function with  future capability to call many different led effects 
-{
-  brightnessDetectUpdate();
+//main LED update function
+  {
+  brightnessDetectUpdate();  // change LED brightness pending room brightness
 
+  currentLedMode = ledSchedulerChooseMode();
 
-  //ledRainbowFade();
-  //ledRainbowWave();
-  //ledNightRider(true);
-  ledBinaryCounter();
+  if (currentLedMode != previousLedMode) {
+    ledModeEnter(currentLedMode);
+    logInfo("LED mode changed: %u", currentLedMode);
+    previousLedMode = currentLedMode;
+  }
+
+  runLedMode(currentLedMode);
 }
 
 void brightnessDetectUpdate()
 {
-  uint8_t hysteresisOffset = 5;
-  static const char* message = "default";
-
+  static constexpr uint8_t hysteresisOffset = 5;
   uint8_t ldr = ldrReportValueAsPercentage();
 
-  //logInfo("brightness: %u", ldrReportValueAsPercentage());
     if(ldr < BRIGHTNESS_THRESHOLD - hysteresisOffset)
   {
     currentBrightness = 50;
-    message = "Dim";
   }
   else if(ldr > BRIGHTNESS_THRESHOLD + hysteresisOffset)
   {
     currentBrightness = 255;
-    message = "Bright";
   }
 
   if(currentBrightness != previousBrightness)
   {
      strip.setBrightness(currentBrightness);
-     logInfo("LED brightness changed: %s", message);
-     logInfo("LED brightness value: %u",currentBrightness);
+
+     const char* msg = (currentBrightness <= 50) ? "Dim" : "Bright";
+     logInfo("LED brightness changed: %s ", msg);
+     logInfo("LED brightness value: %u", currentBrightness);
      previousBrightness = currentBrightness;
   }
 }
@@ -95,6 +134,11 @@ void ledsShow()
   strip.show();
 }
 
+void ledsClear()
+{
+ setFourPixelsEqual(0);
+}
+
 uint32_t colorHSV8(uint8_t h, uint8_t s, uint8_t v)
 {
     if (s == 0) {
@@ -119,4 +163,105 @@ uint32_t colorHSV8(uint8_t h, uint8_t s, uint8_t v)
     }
 
     return ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
+}
+
+static void runTetrisDemo()
+{
+  static bool initialized = false;
+  static uint32_t gameOverSince = 0;
+
+  if (!initialized) {
+    ledTetrisReset();
+    initialized = true;
+    gameOverSince = 0;
+  }
+
+  LedTetrisState s = ledTetrisUpdate();  // pick a default speed for now
+
+  if (s.gameOver) {
+    if (gameOverSince == 0) gameOverSince = millis();
+
+    // Wait long enough for blink+off to complete, plus a pause
+    if (millis() - gameOverSince >= 6000) {
+      ledTetrisReset();
+      gameOverSince = 0;
+    }
+  } else {
+    gameOverSince = 0;
+  }
+}
+
+static void runTetrisGame()
+{
+  static bool initialized = false;
+
+  if (!initialized) {
+    ledTetrisReset();
+    initialized = true;
+  }
+
+  LedTetrisState s = ledTetrisUpdate();
+
+  // If s.gameOver becomes true, it will blink+off and then stay off.
+  // use s.score to print score on nixies
+}
+
+static LedMode ledSchedulerChooseMode()
+{
+  int32_t sec = timeReporter_secondsSinceMidnight();
+  if (sec < 0) {
+    // Time not valid yet (pre-NTP). Pick something safe.
+    return   LEDMODE_OFF;
+  }
+
+  uint8_t hour = (uint8_t)(sec / 3600); // 0..23
+  return hourlySchedule[hour];
+}
+
+static void ledModeEnter(LedMode m)
+{
+  // Do one-time init per mode
+  switch (m) {
+    case LEDMODE_TETRIS_DEMO:
+      ledTetrisReset();
+      break;
+    case LEDMODE_TETRIS_GAME:
+      ledTetrisReset();
+      break;
+    default:
+      break;
+  }
+}
+
+static void runLedMode(LedMode m)
+{
+  switch (m) {
+    case LEDMODE_OFF:
+      ledsClear();
+      ledsShow();
+      break;
+
+    case LEDMODE_RAINBOW_FADE:
+      ledRainbowFade();        
+      break;
+
+    case LEDMODE_RAINBOW_WAVE:
+      ledRainbowWave();        
+      break;
+
+    case LEDMODE_NIGHTRIDER:
+      ledNightRider(true);     
+      break;
+
+    case LEDMODE_BINARY_COUNTER:
+      ledBinaryCounter();
+      break;
+
+    case LEDMODE_TETRIS_DEMO:
+      runTetrisDemo();
+      break;
+
+    default:
+      break;
+  }
 }
