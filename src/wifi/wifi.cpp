@@ -76,9 +76,9 @@ void wifiStart()
 
         if (currentCred >= WIFI_CREDS_COUNT) {
             lastCycleEndMs = nowMs;
-            logInfo("WiFi: finished cycle through credentials; entering cooldown");
+            logInfo("WiFi finished cycle through credentials; entering cooldown");
         } else {
-            logInfo("WiFi: timed out; moving to next credential");
+            logInfo("WiFi timed out; moving to next credential");
         }
     }
 }
