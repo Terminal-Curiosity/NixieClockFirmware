@@ -102,12 +102,14 @@ if (phase == GAMEOVER_BLINK) {
 
   if (phase == GAMEOVER_OFF) {
     ledsClear();
+    ledsShow();
 
   } else {
     if (blinkOn) {
       renderCells();        // show final board
     } else {
       ledsClear();          // hide it
+      ledsShow();
 
     }
   }

@@ -17,38 +17,39 @@ void brightnessDetectUpdate();
 static void runTetrisDemo();
 static void runTetrisGame();
 static LedMode ledSchedulerChooseMode();
-static void ledModeEnter(LedMode m);
-static void runLedMode(LedMode m);
+static void ledModeEnter(LedMode);
+static void runLedMode(LedMode);
+static const char* ledModeToString(LedMode);
 
 static LedMode currentLedMode = LEDMODE_TETRIS_DEMO;
 static LedMode previousLedMode = LEDMODE_OFF;
 
 // LED display mode scheduler
 static constexpr LedMode hourlySchedule[24] = {
-  LEDMODE_TETRIS_DEMO,    // 00
-  LEDMODE_OFF,            // 01
-  LEDMODE_OFF,            // 02
-  LEDMODE_OFF,            // 03
-  LEDMODE_OFF,            // 04
-  LEDMODE_OFF,            // 05
-  LEDMODE_OFF,            // 06
-  LEDMODE_NIGHTRIDER,     // 07
-  LEDMODE_RAINBOW_FADE,   // 08
-  LEDMODE_BINARY_COUNTER, // 09
-  LEDMODE_TETRIS_DEMO,    // 10
-  LEDMODE_RAINBOW_WAVE,   // 11
-  LEDMODE_NIGHTRIDER,     // 12
-  LEDMODE_RAINBOW_FADE,   // 13
-  LEDMODE_BINARY_COUNTER, // 14
-  LEDMODE_TETRIS_DEMO,    // 15
-  LEDMODE_RAINBOW_WAVE,   // 16
-  LEDMODE_NIGHTRIDER,     // 17
-  LEDMODE_RAINBOW_FADE,   // 18
-  LEDMODE_BINARY_COUNTER, // 19
-  LEDMODE_TETRIS_DEMO,    // 20
-  LEDMODE_RAINBOW_WAVE,   // 21
-  LEDMODE_NIGHTRIDER,     // 22
-  LEDMODE_BINARY_COUNTER, // 23
+  LEDMODE_RAINBOW_FADE,   
+  LEDMODE_OFF,            
+  LEDMODE_OFF,            
+  LEDMODE_OFF,            
+  LEDMODE_OFF,            
+  LEDMODE_OFF,            
+  LEDMODE_OFF,           
+  LEDMODE_RAINBOW_FADE,
+  LEDMODE_RAINBOW_WAVE,
+  LEDMODE_NIGHTRIDER,
+  LEDMODE_BINARY_COUNTER,
+  LEDMODE_TETRIS_DEMO,
+  LEDMODE_PULSE_SHOCKWAVE,
+  LEDMODE_RAINBOW_FADE,
+  LEDMODE_RAINBOW_WAVE,
+  LEDMODE_NIGHTRIDER,
+  LEDMODE_BINARY_COUNTER,
+  LEDMODE_TETRIS_DEMO,
+  LEDMODE_PULSE_SHOCKWAVE,
+  LEDMODE_RAINBOW_FADE,
+  LEDMODE_RAINBOW_WAVE,
+  LEDMODE_NIGHTRIDER,
+  LEDMODE_BINARY_COUNTER,
+  LEDMODE_TETRIS_DEMO,
 };
 
 bool ledsInit(void) {
@@ -72,7 +73,7 @@ void updateLeds()
 
   if (currentLedMode != previousLedMode) {
     ledModeEnter(currentLedMode);
-    logInfo("LED mode changed: %u", currentLedMode);
+    logInfo("LED mode changed: %s", ledModeToString(currentLedMode));
     previousLedMode = currentLedMode;
   }
 
@@ -136,7 +137,10 @@ void ledsShow()
 
 void ledsClear()
 {
- setFourPixelsEqual(0);
+  strip.setPixelColor(0, 0);  
+  strip.setPixelColor(1, 0);
+  strip.setPixelColor(2, 0);
+  strip.setPixelColor(3, 0);
 }
 
 uint32_t colorHSV8(uint8_t h, uint8_t s, uint8_t v)
@@ -253,6 +257,10 @@ static void runLedMode(LedMode m)
       ledNightRider(true);     
       break;
 
+    case LEDMODE_PULSE_SHOCKWAVE:
+      ledPulseShockwave();     
+      break;
+
     case LEDMODE_BINARY_COUNTER:
       ledBinaryCounter();
       break;
@@ -264,4 +272,19 @@ static void runLedMode(LedMode m)
     default:
       break;
   }
+}
+
+static const char* ledModeToString(LedMode mode)
+{
+    switch (mode) {
+        case LEDMODE_OFF:            return "OFF";
+        case LEDMODE_RAINBOW_WAVE:   return "RAINBOW_WAVE";
+        case LEDMODE_RAINBOW_FADE:   return "RAINBOW_FADE";
+        case LEDMODE_NIGHTRIDER:     return "NIGHTRIDER";
+        case LEDMODE_BINARY_COUNTER: return "BINARY_COUNTER";
+        case LEDMODE_PULSE_SHOCKWAVE: return "PULSE_SHOCKWAVE";
+        case LEDMODE_TETRIS_DEMO:    return "TETRIS_DEMO";
+        case LEDMODE_TETRIS_GAME:    return "TETRIS_GAME";
+        default:                     return "UNKNOWN";
+    }
 }
