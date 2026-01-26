@@ -24,7 +24,7 @@ void ledRainbowFade(uint16_t updateDelayTime) {
   if (millis() - lastUpdateMs < updateDelayTime) return;
   lastUpdateMs = millis();
 
-  static uint32_t color = colorHSV8(baseHue, 255, 255); //hue from 0-255, saturation 0-255, value 0-255
+  uint32_t color = colorHSV8(baseHue, 255, 255); //hue from 0-255, saturation 0-255, value 0-255
   setFourPixelsEqual(color);
   baseHue++;
 }
