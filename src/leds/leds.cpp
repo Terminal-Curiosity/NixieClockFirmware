@@ -212,14 +212,40 @@ static void runTetrisGame()
 
 static LedMode ledSchedulerChooseMode()
 {
-  int32_t sec = timeReporter_secondsSinceMidnight();
+
+ int32_t sec = timeReporter_secondsSinceMidnight();
   if (sec < 0) {
     // Time not valid yet (pre-NTP). Pick something safe.
     return   LEDMODE_OFF;
   }
 
-  uint8_t hour = (uint8_t)(sec / 3600); // 0..23
-  return hourlySchedule[hour];
+  if (sec < 7*3600)
+  //if time is between midnight and 7am, disable LEDs
+  return LEDMODE_OFF;
+
+  static int8_t lastHour = -1;
+  static uint8_t currentIndex = 0;
+  
+  uint8_t hour = (int8_t)(sec / 3600);
+
+  if(hour != lastHour)
+  {
+    lastHour = hour;
+    if(LEDMODE_ENUM_COUNT > 1){
+    // make sure there's more than 1 option to choose from 
+     uint8_t next;
+      do {
+        next = (uint8_t)random(0, LEDMODE_ENUM_COUNT);
+      } while (next == currentIndex); // optional: no immediate repeat
+      currentIndex = next;
+    } else {
+      currentIndex = 0;
+
+  }
+  }
+  return static_cast<LedMode>(currentIndex);
+
+
 }
 
 static void ledModeEnter(LedMode m)

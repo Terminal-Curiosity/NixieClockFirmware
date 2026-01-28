@@ -3,13 +3,17 @@
 #include <Adafruit_NeoPixel.h>
 
 enum LedMode : uint8_t {
-  LEDMODE_OFF = 0,
-  LEDMODE_RAINBOW_FADE,
+  LEDMODE_RAINBOW_FADE = 0,
   LEDMODE_RAINBOW_WAVE,
   LEDMODE_NIGHTRIDER,
   LEDMODE_BINARY_COUNTER,
   LEDMODE_TETRIS_DEMO,
   LEDMODE_PULSE_SHOCKWAVE,
+
+  LEDMODE_ENUM_COUNT, // everything before this is cyclable
+
+  //special modes not accessed during regular cycling
+  LEDMODE_OFF = 100,
   LEDMODE_TETRIS_GAME
 };
 
