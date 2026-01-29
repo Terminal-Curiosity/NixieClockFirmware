@@ -23,7 +23,7 @@ static void ledModeEnter(LedMode);
 static void runLedMode(LedMode);
 static const char* ledModeToString(LedMode);
 
-static LedMode currentLedMode = LEDMODE_TETRIS_DEMO;
+static LedMode currentLedMode = LEDMODE_OFF;
 static LedMode previousLedMode = LEDMODE_OFF;
 
 bool ledsInit(void) {
@@ -199,7 +199,7 @@ static LedMode ledSchedulerChooseMode()
   return LEDMODE_OFF;
 
   static int8_t lastHour = -1;
-  uint8_t currentIndex = 0;
+  static uint8_t currentIndex = 0;
   
   uint8_t hour = (int8_t)(sec / 3600);
 
@@ -219,8 +219,6 @@ static LedMode ledSchedulerChooseMode()
   }
   }
   return static_cast<LedMode>(currentIndex);
-
-
 }
 
 static void ledModeEnter(LedMode m)
@@ -298,7 +296,7 @@ static const char* ledModeToString(LedMode mode)
         case LEDMODE_PULSE_SHOCKWAVE: return "PULSE_SHOCKWAVE";
         case LEDMODE_HEARTBEAT:      return "HEARTBEAT";
         case LEDMODE_TETRIS_DEMO:    return "TETRIS_DEMO";
-        case LEDMODE_CALIFE:         return "CA-LIFE";
+        case LEDMODE_CALIFE:         return "CA_LIFE";
         case LEDMODE_FIREFLY:        return "FIREFLY";
         case LEDMODE_TETRIS_GAME:    return "TETRIS_GAME";
         default:                     return "UNKNOWN";
