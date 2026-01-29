@@ -109,9 +109,6 @@ void ledNightRider(bool rainbow)
     ledsShow();
 }
 
-
-
-
 void ledBinaryCounter()
 {   
     static uint32_t lastSec = -1;
@@ -226,3 +223,112 @@ void ledPulseShockwave()
 
     ledsShow();
 }
+
+// Heartbeat animation for 4 LEDs (non-blocking)
+// - "Lub-dub" double beat
+// - Starts on a real second change (using timeReporter_secondsSinceMidnight())
+// - Optional: hue can drift slowly, or you can keep it fixed
+//
+// Depends on your helpers:
+//   uint32_t colorHSV8(uint8_t h, uint8_t s, uint8_t v);
+//   void setFourPixelsEqual(uint32_t packedColor);   // or replace with your per-pixel setter
+//   void ledsShow();
+//   void ledsClear();
+
+
+
+static uint8_t hbGamma8(uint8_t x)
+{
+  // cheap gamma-ish curve: (x^2)/255
+  return (uint16_t(x) * uint16_t(x) + 255) >> 8;
+}
+
+static uint8_t hbPulse(uint32_t t_ms, uint16_t attack_ms, uint16_t decay_ms)
+{
+  // returns 0..255
+  uint32_t total = (uint32_t)attack_ms + (uint32_t)decay_ms;
+  if (t_ms >= total) return 0;
+
+  uint16_t a = attack_ms;
+  uint16_t d = decay_ms;
+
+  uint8_t level;
+  if (t_ms < a) {
+    // linear attack 0->255
+    level = (uint8_t)((t_ms * 255u) / a);
+  } else {
+    // linear decay 255->0
+    uint32_t td = t_ms - a;
+    level = (uint8_t)(255u - ((td * 255u) / d));
+  }
+  return hbGamma8(level);
+}
+
+void ledHeartbeat(uint8_t hueFixed, bool hueDrift)
+{
+    static int32_t  lastSecMid = -1;
+    static uint32_t secStartMs = 0;
+    static uint8_t  hue = 0;
+    static int16_t beatJitter = 0;
+
+
+    uint32_t now = millis();
+
+    int32_t secMid = timeReporter_secondsSinceMidnight();
+    if (secMid < 0) return;
+
+    if (secMid != lastSecMid) {
+        lastSecMid = secMid;
+        secStartMs = now;
+        hue = hueDrift ? (uint8_t)(hue + 5) : hueFixed;
+        // ±20 ms feels organic without being obvious
+        beatJitter = random(-30, 31);
+    }
+
+    uint32_t t = now - secStartMs;
+
+    // Heartbeat timing (lub-dub)
+const uint16_t lubAttack = 35 + beatJitter / 4;
+const uint16_t lubDecay  = 220 + beatJitter / 2;
+const uint16_t gapMs     = 120 + beatJitter / 3;
+const uint16_t dubAttack = 25 + beatJitter / 4;
+const uint16_t dubDecay  = 200 + beatJitter / 2;
+
+
+    const uint32_t dubStart = (uint32_t)lubAttack + lubDecay + gapMs;
+
+    uint8_t env = hbPulse(t, lubAttack, lubDecay);
+    if (t >= dubStart) {
+        uint8_t dubEnv = hbPulse(t - dubStart, dubAttack, dubDecay);
+        if (dubEnv > env) env = dubEnv;
+    }
+
+    // Baseline + peak control
+    const uint8_t baseDim = 2;
+    const uint8_t maxV    = 140;
+
+    uint16_t scaledInner = (uint16_t)env * maxV / 255u;
+    uint8_t vInner = (scaledInner > baseDim) ? scaledInner : baseDim;
+
+    // Outer LEDs at ~half brightness
+    const uint8_t outerScale = 90; // ~50%
+    uint16_t scaledOuter = (uint16_t)vInner * outerScale / 255u;
+    uint8_t vOuter = (scaledOuter > baseDim) ? scaledOuter : baseDim;
+
+    // Render
+    ledsClear();
+
+    uint32_t cInner = colorHSV8(hue, 255, vInner);
+    uint32_t cOuter = colorHSV8(hue, 255, vOuter);
+
+    // Outer LEDs
+    ledsSetPixelPacked(0, cOuter);
+    ledsSetPixelPacked(3, cOuter);
+
+    // Inner LEDs (the "heart")
+    ledsSetPixelPacked(1, cInner);
+    ledsSetPixelPacked(2, cInner);
+
+    ledsShow();
+}
+

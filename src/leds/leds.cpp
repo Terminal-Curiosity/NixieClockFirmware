@@ -1,9 +1,10 @@
-#include "leds.h"
+#include "leds/leds.h"
 #include "animations.h"
 #include "config.h"
 #include "logger/logger.h"
 #include "ldr/ldr.h" 
-#include "tetris.h"
+#include "games/tetris.h"
+#include "leds/games/caLife.h"
 #include "time/timeReporter.h"
 
 
@@ -41,8 +42,8 @@ void updateLeds()
   {
   brightnessDetectUpdate();  // change LED brightness pending room brightness
 
-  currentLedMode = ledSchedulerChooseMode();
-    //currentLedMode = LEDMODE_NIGHTRIDER;
+  //currentLedMode = ledSchedulerChooseMode();
+    currentLedMode = LEDMODE_FIREFLY;
 
   if (currentLedMode != previousLedMode) {
     ledModeEnter(currentLedMode);
@@ -268,6 +269,18 @@ static void runLedMode(LedMode m)
       runTetrisDemo();
       break;
 
+    case LEDMODE_CALIFE:
+      ledCyclicColorCA();
+      break;
+
+    case LEDMODE_HEARTBEAT:
+      ledHeartbeat();
+      break;
+
+    case LEDMODE_FIREFLY:
+      ledHeartbeat();
+      break;
+
     default:
       break;
   }
@@ -282,7 +295,10 @@ static const char* ledModeToString(LedMode mode)
         case LEDMODE_NIGHTRIDER:     return "NIGHTRIDER";
         case LEDMODE_BINARY_COUNTER: return "BINARY_COUNTER";
         case LEDMODE_PULSE_SHOCKWAVE: return "PULSE_SHOCKWAVE";
+        case LEDMODE_HEARTBEAT:      return "HEARTBEAT";
         case LEDMODE_TETRIS_DEMO:    return "TETRIS_DEMO";
+        case LEDMODE_CALIFE:         return "CA-LIFE";
+        case LEDMODE_FIREFLY:        return "FIREFLY";
         case LEDMODE_TETRIS_GAME:    return "TETRIS_GAME";
         default:                     return "UNKNOWN";
     }
