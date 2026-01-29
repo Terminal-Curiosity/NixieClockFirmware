@@ -1,8 +1,8 @@
 #include "config.h"
-#include "leds.h"
+#include "leds/leds.h"
 #include "tetris.h"
 #include "logger/logger.h"
-#include "animations.h"
+#include "leds/animations.h"
 
 
 // --- Internal state ---

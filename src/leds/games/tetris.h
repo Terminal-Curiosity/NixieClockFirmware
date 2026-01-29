@@ -1,6 +1,6 @@
 #pragma once
 
-#include "leds.h"
+#include "../leds.h"
 struct LedTetrisState {
   uint16_t score;
   bool gameOver;
