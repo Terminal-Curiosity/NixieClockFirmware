@@ -48,49 +48,69 @@ void ledRainbowWave(uint16_t updateDelayTime) {
 
 void ledNightRider(bool rainbow)
 {
-    // const uint8_t n = strip.numPixels();
-    const uint8_t n = 4;
-    if (n < 2) return;
+    const uint16_t stepsPerCycle = 2 * (LED_NUM_PIXELS - 1);
 
-    // 1 cycle/sec, steps = 2*(n-1) per cycle
-    const uint16_t stepsPerCycle = 2 * (n - 1);
+    static int32_t  lastSecMid   = -1;
+    static uint32_t secStartMs   = 0;
 
-    // Phase accumulator in "steps * 1000" units
-    // Each ms we advance by stepsPerCycle; every time we cross 1000, we do one step.
-    static uint32_t acc = 0;
-    static uint32_t lastMs = 0;
+    static uint16_t stepCounter  = 0;   // counts micro-steps since :00
+    static uint8_t  lastStep     = 0xFF;
 
     uint32_t now = millis();
-    uint32_t dt = now - lastMs;
-    lastMs = now;
 
-    acc += dt * stepsPerCycle;
+    int32_t secMid = timeReporter_secondsSinceMidnight();
+    if (secMid < 0) return;
 
-    static uint8_t pos = 0;
-    static int8_t dir = +1;
-    static uint8_t hue = 85;
+    // Reset at top of minute (do this once per minute)
+    if (secMid != lastSecMid) {
+        lastSecMid = secMid;
+        secStartMs = now;
 
-    // Advance as many steps as needed (handles occasional long dt cleanly)
-    while (acc >= 1000) {
-        acc -= 1000;
-
-        // move one step along the bounce path
-        if (dir > 0) {
-            if (pos >= n - 1) { dir = -1; pos--; }
-            else pos++;
-        } else {
-            if (pos == 0)     { dir = +1; pos++; }
-            else pos--;
+        if ((secMid % 60) == 0) {
+            stepCounter = 0;
+            lastStep = 0xFF; // ok to keep; we'll handle counting safely below
         }
-
-        if (rainbow) hue++; // optional: color shifts slowly each step
     }
 
-    // Render (simple head-only looks best on 4 LEDs)
-    for (uint8_t i = 0; i < n; i++) ledsSetPixelPacked(i, 0);
-    ledsSetPixelPacked(pos, colorHSV8(rainbow ? hue : 0, 255, 255));
+    uint32_t phaseMs = now - secStartMs;
+    if (phaseMs >= 1000) phaseMs = 999;
+
+    uint8_t step = (uint8_t)((phaseMs * stepsPerCycle) / 1000);
+
+    // Total micro-steps per minute (n=4 => 360)
+    const uint16_t STEPS_PER_MIN = 60 * stepsPerCycle;
+
+    // Count a "pulse" whenever the step changes
+    if (step != lastStep) {
+        lastStep = step;
+
+        // Keep it in-range and perfectly periodic
+        stepCounter++;
+        if (stepCounter >= STEPS_PER_MIN) stepCounter = 0;   // <<< key
+    }
+
+    uint8_t pos = (step <= (LED_NUM_PIXELS - 1)) ? step : (stepsPerCycle - step);
+    uint8_t ledIndex = (LED_NUM_PIXELS - 1) - pos;
+
+    // Full wheel per minute, starting at your "red" hue
+    const uint8_t HUE_START = 85;   // your red
+    const uint8_t HUE_SPAN  = 255;  // almost full wheel (smooth seam)
+
+    uint8_t hue = HUE_START;
+    if (rainbow) {
+        
+        uint8_t ramp = (uint8_t)(((uint32_t)stepCounter * HUE_SPAN) / STEPS_PER_MIN);
+        hue = (uint8_t)(HUE_START - ramp);
+    }
+
+    ledsClear();
+    uint8_t headHue = rainbow ? hue : 85;
+    ledsSetPixelPacked(ledIndex, colorHSV8(headHue, 255, 255));
     ledsShow();
 }
+
+
+
 
 void ledBinaryCounter()
 {   

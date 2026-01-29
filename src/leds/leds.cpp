@@ -41,8 +41,8 @@ void updateLeds()
   {
   brightnessDetectUpdate();  // change LED brightness pending room brightness
 
-  //currentLedMode = ledSchedulerChooseMode();
-    currentLedMode = LEDMODE_BINARY_COUNTER;
+  currentLedMode = ledSchedulerChooseMode();
+    //currentLedMode = LEDMODE_NIGHTRIDER;
 
   if (currentLedMode != previousLedMode) {
     ledModeEnter(currentLedMode);
