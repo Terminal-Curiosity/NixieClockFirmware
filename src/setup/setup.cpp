@@ -9,6 +9,7 @@
 #include "ntpManager/ntpManager.h"
 #include "logger/logger.h"
 #include "secrets.h" //not included in repo for security reasons
+#include "ble/bleLogger.h"
   
 static bool loggerOk = false;
 static bool i2cOk = false;
@@ -17,6 +18,7 @@ static bool ldrOk = false;
 static bool ledsOk = false;
 static bool wifiOk = false;
 static bool timeKeeperOk = false;
+static bool bleLogOK = false;
 
 void setup() 
 {
@@ -27,6 +29,7 @@ void setup()
   ledsOk = ledsInit();
   wifiOk = wifiInit();
   timeKeeperOk = timeKeeperInit();
+  
   
   hvpsuEnable();
   logInfo("------------ Setup Complete ----------------");
