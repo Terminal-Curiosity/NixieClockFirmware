@@ -5,6 +5,7 @@
 #include "ldr/ldr.h" 
 #include "games/tetris.h"
 #include "leds/games/caLife.h"
+#include "leds/games/firefly.h"
 #include "time/timeReporter.h"
 
 
@@ -42,8 +43,8 @@ void updateLeds()
   {
   brightnessDetectUpdate();  // change LED brightness pending room brightness
 
-  //currentLedMode = ledSchedulerChooseMode();
-    currentLedMode = LEDMODE_FIREFLY;
+    currentLedMode = ledSchedulerChooseMode();
+    //currentLedMode = LEDMODE_FIREFLY;
 
   if (currentLedMode != previousLedMode) {
     ledModeEnter(currentLedMode);
@@ -278,7 +279,7 @@ static void runLedMode(LedMode m)
       break;
 
     case LEDMODE_FIREFLY:
-      ledHeartbeat();
+      ledFireflySync();
       break;
 
     default:
