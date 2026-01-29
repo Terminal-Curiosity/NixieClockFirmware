@@ -3,6 +3,7 @@
 #include "logger/logger.h"
 #include "ldr/ldr.h"
 #include "leds.h"
+#include "time/timeReporter.h"
 
 //also include a simple function to set LEDs off
 
@@ -91,29 +92,40 @@ void ledNightRider(bool rainbow)
     ledsShow();
 }
 
-void ledBinaryCounter(uint16_t updateDelayTime)
-{
-    static uint32_t lastTick = 0;
-    uint32_t now = millis();
+void ledBinaryCounter()
+{   
+    static uint32_t lastSec = -1;
 
-    // 500 ms tick (2 Hz)
-    if (now - lastTick < updateDelayTime) return;
-    lastTick += 500;   // prevents drift
+    uint32_t secSinceMidnight = timeReporter_secondsSinceMidnight();
+    uint8_t currentSec = secSinceMidnight % 60;
+   
 
-    static uint8_t counter = 0;
-    counter++;         // wraps naturally at 255, but we’ll mask bits
+    if(currentSec == lastSec) return;
+    lastSec = currentSec;
+    
+    uint8_t currentQuarter = currentSec / 15;
+    uint8_t remainderSec = currentSec % 15;
+
+    static const uint8_t quarterHue[4] = {
+        //map colours in order they appear on the rainbow to represent minute quarters
+        85,   // red
+        0,    // green
+        190,  // cyan
+        128   // indigo
+    };
+
+    uint8_t hue = quarterHue[currentQuarter];
 
     // Render bits
     for (uint8_t i = 0; i < LED_NUM_PIXELS; i++) {
-        bool bitOn = counter & (1 << i);
+        bool bitOn = remainderSec & (1 << i);
         uint8_t led = (LED_NUM_PIXELS - 1) - i;
         if (bitOn) {
-            ledsSetPixelPacked(led, colorHSV8(baseHue, 255, 255)); // ON
+            ledsSetPixelPacked(led, colorHSV8(hue, 255, 255)); // ON
         } else {
-            ledsSetPixel(led, 0, 0, 0);                     
+            ledsSetPixelPacked(led, colorHSV8(hue, 255, 20));                     
         }
     }
-    baseHue++;
     ledsShow();
 }
 
@@ -122,6 +134,7 @@ void ledPulseShockwave()
 {
     static uint32_t lastPulseStartMs = 0;
     static uint8_t epicenter = 0;
+    uint8_t priorEpicenter = -1;
     static uint8_t baseHue = 0;
 
     uint32_t now = millis();
@@ -129,8 +142,9 @@ void ledPulseShockwave()
     // Start a new pulse once per second
     if (now - lastPulseStartMs >= 1000) {
         lastPulseStartMs += 1000;                 // prevents drift
-        epicenter = (uint8_t)random(0, LED_NUM_PIXELS);
+        epicenter = priorEpicenter + (uint8_t)random(1, LED_NUM_PIXELS);
         baseHue = (uint8_t)(baseHue + 25);        // drastic hue shift each pulse
+        priorEpicenter = epicenter;
     }
 
     uint32_t t = now - lastPulseStartMs;          // time since pulse start (0..999)

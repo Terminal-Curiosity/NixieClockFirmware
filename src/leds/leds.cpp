@@ -24,34 +24,6 @@ static const char* ledModeToString(LedMode);
 static LedMode currentLedMode = LEDMODE_TETRIS_DEMO;
 static LedMode previousLedMode = LEDMODE_OFF;
 
-// LED display mode scheduler
-static constexpr LedMode hourlySchedule[24] = {
-  LEDMODE_RAINBOW_FADE,   
-  LEDMODE_OFF,            
-  LEDMODE_OFF,            
-  LEDMODE_OFF,            
-  LEDMODE_OFF,            
-  LEDMODE_OFF,            
-  LEDMODE_OFF,           
-  LEDMODE_RAINBOW_FADE,
-  LEDMODE_RAINBOW_WAVE,
-  LEDMODE_NIGHTRIDER,
-  LEDMODE_BINARY_COUNTER,
-  LEDMODE_TETRIS_DEMO,
-  LEDMODE_PULSE_SHOCKWAVE,
-  LEDMODE_RAINBOW_FADE,
-  LEDMODE_RAINBOW_WAVE,
-  LEDMODE_NIGHTRIDER,
-  LEDMODE_BINARY_COUNTER,
-  LEDMODE_TETRIS_DEMO,
-  LEDMODE_PULSE_SHOCKWAVE,
-  LEDMODE_RAINBOW_FADE,
-  LEDMODE_RAINBOW_WAVE,
-  LEDMODE_NIGHTRIDER,
-  LEDMODE_BINARY_COUNTER,
-  LEDMODE_TETRIS_DEMO,
-};
-
 bool ledsInit(void) {
     pinMode(ESP_LED,OUTPUT);
     digitalWrite(ESP_LED,LOW);  //explicitly disable ESP onboard LED
@@ -69,7 +41,8 @@ void updateLeds()
   {
   brightnessDetectUpdate();  // change LED brightness pending room brightness
 
-  currentLedMode = ledSchedulerChooseMode();
+  //currentLedMode = ledSchedulerChooseMode();
+    currentLedMode = LEDMODE_BINARY_COUNTER;
 
   if (currentLedMode != previousLedMode) {
     ledModeEnter(currentLedMode);
@@ -224,7 +197,7 @@ static LedMode ledSchedulerChooseMode()
   return LEDMODE_OFF;
 
   static int8_t lastHour = -1;
-  static uint8_t currentIndex = 0;
+  uint8_t currentIndex = 0;
   
   uint8_t hour = (int8_t)(sec / 3600);
 

@@ -6,5 +6,5 @@ void ledBlank();
 void ledRainbowFade(uint16_t updateDelayTime = 100);
 void ledRainbowWave(uint16_t updateDelayTime = 50);
 void ledNightRider(bool rainbow = false);
-void ledBinaryCounter(uint16_t updateDelayTime = 500);
+void ledBinaryCounter();
 void ledPulseShockwave();
