@@ -10,7 +10,7 @@
 
 
 static constexpr uint8_t BRIGHTNESS_THRESHOLD = 20;
-static Adafruit_NeoPixel strip = Adafruit_NeoPixel(LED_NUM_PIXELS, ledStringDin, NEO_GRB + NEO_KHZ800);
+static Adafruit_NeoPixel strip = Adafruit_NeoPixel(LED_NUM_PIXELS, ledStringDin, NEO_RGB + NEO_KHZ800);
 
 static uint8_t previousBrightness = 1;
 static uint8_t currentBrightness = 1;
@@ -44,7 +44,7 @@ void updateLeds()
   brightnessDetectUpdate();  // change LED brightness pending room brightness
 
     currentLedMode = ledSchedulerChooseMode();
-    //currentLedMode = LEDMODE_FIREFLY;
+    //currentLedMode = LEDMODE_CALIFE; //for testing individual display modes
 
   if (currentLedMode != previousLedMode) {
     ledModeEnter(currentLedMode);
@@ -80,12 +80,20 @@ void brightnessDetectUpdate()
   }
 }
 
+void ledsSetPixelPacked(uint8_t i, uint32_t RGB)
+{
+  uint8_t r = (RGB >> 16) & 0xFF;
+  uint8_t g = (RGB >> 8)  & 0xFF;
+  uint8_t b = (RGB)       & 0xFF;
+  strip.setPixelColor(i, r, g, b);
+}
 
 void setFourPixelsEqual(uint32_t color) {
-  strip.setPixelColor(0, color);  
-  strip.setPixelColor(1, color);
-  strip.setPixelColor(2, color);
-  strip.setPixelColor(3, color);
+  for (int i = 0; i < LED_NUM_PIXELS; i++)
+  {
+    ledsSetPixelPacked(i, color);  
+  }
+
   strip.show();
 }
 
@@ -97,12 +105,6 @@ void ledsSetPixel(uint8_t i, uint8_t r, uint8_t g, uint8_t b)
 uint32_t ledsColour(uint8_t r, uint8_t g, uint8_t b)
 {
     return ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
-}
-
-
-void ledsSetPixelPacked(uint8_t i, uint32_t RGB)
-{
-  strip.setPixelColor(i, RGB);
 }
 
 void ledsShow()
@@ -266,6 +268,10 @@ static void runLedMode(LedMode m)
 
     case LEDMODE_TETRIS_DEMO:
       runTetrisDemo();
+      break;
+
+    case LEDMODE_TETRIS_GAME:
+      runTetrisGame();
       break;
 
     case LEDMODE_CALIFE:

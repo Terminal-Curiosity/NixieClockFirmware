@@ -26,8 +26,11 @@ void ledRainbowFade(uint16_t updateDelayTime) {
   lastUpdateMs = millis();
 
   uint32_t color = colorHSV8(baseHue, 255, 255); //hue from 0-255, saturation 0-255, value 0-255
-  setFourPixelsEqual(color);
+  for(int i = 0; i < LED_NUM_PIXELS; i++) ledsSetPixelPacked(i, color);
+
+  ledsShow();
   baseHue++;
+
 }
 
 void ledRainbowWave(uint16_t updateDelayTime) {
@@ -93,14 +96,14 @@ void ledNightRider(bool rainbow)
     uint8_t ledIndex = (LED_NUM_PIXELS - 1) - pos;
 
     // Full wheel per minute, starting at your "red" hue
-    const uint8_t HUE_START = 85;   // your red
+    const uint8_t HUE_START = 250;   // your red
     const uint8_t HUE_SPAN  = 255;  // almost full wheel (smooth seam)
 
     uint8_t hue = HUE_START;
     if (rainbow) {
         
         uint8_t ramp = (uint8_t)(((uint32_t)stepCounter * HUE_SPAN) / STEPS_PER_MIN);
-        hue = (uint8_t)(HUE_START - ramp);
+        hue = (uint8_t)(HUE_START + ramp);
     }
 
     ledsClear();
@@ -125,10 +128,10 @@ void ledBinaryCounter()
 
     static const uint8_t quarterHue[4] = {
         //map colours in order they appear on the rainbow to represent minute quarters
-        85,   // red
-        0,    // green
-        190,  // cyan
-        128   // indigo
+        0,   // red
+        85,    // green
+        160,  // cyan
+        220   // indigo
     };
 
     uint8_t hue = quarterHue[currentQuarter];
@@ -214,7 +217,7 @@ void ledPulseShockwave()
 
         if (dist == 1) v = (uint8_t)((uint16_t)v * 180 / 255);
         if (dist == 2) v = (uint8_t)((uint16_t)v * 120 / 255);
-        if (dist == 3) v = (uint8_t)((uint16_t)v * 70  / 255);
+        if (dist == 3) v = (uint8_t)((uint16_t)v * 60  / 255);
 
         if (v == 0) continue;
 
@@ -224,111 +227,199 @@ void ledPulseShockwave()
     ledsShow();
 }
 
-// Heartbeat animation for 4 LEDs (non-blocking)
-// - "Lub-dub" double beat
-// - Starts on a real second change (using timeReporter_secondsSinceMidnight())
-// - Optional: hue can drift slowly, or you can keep it fixed
-//
-// Depends on your helpers:
-//   uint32_t colorHSV8(uint8_t h, uint8_t s, uint8_t v);
-//   void setFourPixelsEqual(uint32_t packedColor);   // or replace with your per-pixel setter
-//   void ledsShow();
-//   void ledsClear();
 
+// -------------------- Heartbeat helpers --------------------
 
-
-static uint8_t hbGamma8(uint8_t x)
+static uint8_t triEnv(uint32_t tMs, uint16_t lenMs)
 {
-  // cheap gamma-ish curve: (x^2)/255
-  return (uint16_t(x) * uint16_t(x) + 255) >> 8;
+    if (tMs >= lenMs) return 0;
+    uint16_t half = (uint16_t)(lenMs / 2);
+    if (half == 0) return 0;
+
+    if (tMs <= half) {
+        return (uint8_t)((tMs * 255u) / half);
+    } else {
+        uint32_t down = (uint32_t)tMs - half;
+        return (uint8_t)(255u - ((down * 255u) / half));
+    }
 }
 
-static uint8_t hbPulse(uint32_t t_ms, uint16_t attack_ms, uint16_t decay_ms)
+// 50..125 BPM with heavy bias around 65..80, occasional excursions
+static uint16_t pickBiasedBpm()
 {
-  // returns 0..255
-  uint32_t total = (uint32_t)attack_ms + (uint32_t)decay_ms;
-  if (t_ms >= total) return 0;
+    uint8_t r = (uint8_t)random(0, 100);
 
-  uint16_t a = attack_ms;
-  uint16_t d = decay_ms;
-
-  uint8_t level;
-  if (t_ms < a) {
-    // linear attack 0->255
-    level = (uint8_t)((t_ms * 255u) / a);
-  } else {
-    // linear decay 255->0
-    uint32_t td = t_ms - a;
-    level = (uint8_t)(255u - ((td * 255u) / d));
-  }
-  return hbGamma8(level);
+    if (r < 70) {
+        return (uint16_t)random(65, 81);      // 65..80 (common)
+    } else if (r < 92) {
+        return (uint16_t)random(60, 90);      // 60..90 (moderate wander)
+    } else if (r < 96) {
+        return (uint16_t)random(50, 60);      // 50..60 (rare low)
+    } else {
+        return (uint16_t)random(90, 125);     // 90..125 (rare high)
+    }
 }
 
-void ledHeartbeat(uint8_t hueFixed, bool hueDrift)
+// BPM -> Hue (piecewise low->mid->high), with a “mood mapping” toggle.
+static uint8_t hueFromBpmQ8(int32_t bpmQ8)
 {
-    static int32_t  lastSecMid = -1;
-    static uint32_t secStartMs = 0;
-    static uint8_t  hue = 0;
-    static int16_t beatJitter = 0;
+    const uint8_t HUE_RED   = 00;
+    const uint8_t HUE_GREEN = 85;
+    const uint8_t HUE_BLUE  = 170;
 
+    const int32_t BPM_MIN_Q8  = 50  * 256;
+    const int32_t BPM_PIV_Q8  = 75  * 256;   // your "common" heartbeat point
+    const int32_t BPM_MAX_Q8  = 140 * 256;
 
+    // Clamp bpmQ8 into 50..125
+    if (bpmQ8 < BPM_MIN_Q8) bpmQ8 = BPM_MIN_Q8;
+    if (bpmQ8 > BPM_MAX_Q8) bpmQ8 = BPM_MAX_Q8;
+
+    
+    if (bpmQ8 < BPM_PIV_Q8) {
+        uint32_t spanQ8 = (uint32_t)(BPM_PIV_Q8 - BPM_MIN_Q8);      // 25*256
+        uint32_t xQ8    = (uint32_t)(bpmQ8     - BPM_MIN_Q8);      // 0..spanQ8
+        uint16_t t      = (uint16_t)((xQ8 * 255u) / (spanQ8 ? spanQ8 : 1)); // 0..255
+
+        int16_t dh = (int16_t)HUE_GREEN - (int16_t)HUE_BLUE;       // -85
+        return (uint8_t)((int16_t)HUE_BLUE + (int16_t)(dh * t) / 255);
+    }
+
+    // Above pivot: GREEN -> RED across 75..125 (50 BPM span)
+    {
+        uint32_t spanQ8 = (uint32_t)(BPM_MAX_Q8 - BPM_PIV_Q8);      // 50*256
+        uint32_t xQ8    = (uint32_t)(bpmQ8     - BPM_PIV_Q8);      // 0..spanQ8
+        uint16_t t      = (uint16_t)((xQ8 * 255u) / (spanQ8 ? spanQ8 : 1)); // 0..255
+
+        int16_t dh = (int16_t)HUE_RED - (int16_t)HUE_GREEN;        // -85
+        return (uint8_t)((int16_t)HUE_GREEN + (int16_t)(dh * t) / 255);
+    }
+
+}
+
+// -------------------- heartbeat --------------------
+
+void ledHeartbeat()
+{
+    // --- timing base ---
+    static uint32_t lastMs = 0;
     uint32_t now = millis();
+    uint32_t dt = now - lastMs;
+    lastMs = now;
+    if (dt > 60) dt = 60;
 
-    int32_t secMid = timeReporter_secondsSinceMidnight();
-    if (secMid < 0) return;
+    // --- Smooth BPM wander (Q8 fixed-point) ---
+    static bool seeded = false;
+    static int32_t bpmQ8 = 75 * 256;
+    static int32_t targetQ8 = 75 * 256;
+    static uint32_t targetHoldMs = 0;
 
-    if (secMid != lastSecMid) {
-        lastSecMid = secMid;
-        secStartMs = now;
-        hue = hueDrift ? (uint8_t)(hue + 5) : hueFixed;
-        // ±20 ms feels organic without being obvious
-        beatJitter = random(-30, 31);
+    if (!seeded) {
+        int32_t r = (int32_t)random(-5, 6);
+        bpmQ8 = (75 + r) * 256;
+        targetQ8 = bpmQ8;
+        targetHoldMs = 0;
+        seeded = true;
     }
 
-    uint32_t t = now - secStartMs;
-
-    // Heartbeat timing (lub-dub)
-const uint16_t lubAttack = 35 + beatJitter / 4;
-const uint16_t lubDecay  = 220 + beatJitter / 2;
-const uint16_t gapMs     = 120 + beatJitter / 3;
-const uint16_t dubAttack = 25 + beatJitter / 4;
-const uint16_t dubDecay  = 200 + beatJitter / 2;
-
-
-    const uint32_t dubStart = (uint32_t)lubAttack + lubDecay + gapMs;
-
-    uint8_t env = hbPulse(t, lubAttack, lubDecay);
-    if (t >= dubStart) {
-        uint8_t dubEnv = hbPulse(t - dubStart, dubAttack, dubDecay);
-        if (dubEnv > env) env = dubEnv;
+    // choose new target every 2..8 s, but move toward it smoothly
+    if (targetHoldMs <= dt) {
+        targetHoldMs = (uint32_t)random(2000, 8001);
+        targetQ8 = (int32_t)pickBiasedBpm() * 256;
+    } else {
+        targetHoldMs -= dt;
     }
 
-    // Baseline + peak control
-    const uint8_t baseDim = 2;
-    const uint8_t maxV    = 140;
+    const int32_t smoothFactor = 80; // larger = slower flow
+    bpmQ8 += (targetQ8 - bpmQ8) / smoothFactor;
 
-    uint16_t scaledInner = (uint16_t)env * maxV / 255u;
-    uint8_t vInner = (scaledInner > baseDim) ? scaledInner : baseDim;
+    // Clamp 50..125
+    if (bpmQ8 < 50 * 256)  bpmQ8 = 50 * 256;
+    if (bpmQ8 > 140 * 256) bpmQ8 = 140 * 256;
 
-    // Outer LEDs at ~half brightness
-    const uint8_t outerScale = 90; // ~50%
-    uint16_t scaledOuter = (uint16_t)vInner * outerScale / 255u;
-    uint8_t vOuter = (scaledOuter > baseDim) ? scaledOuter : baseDim;
+    // Correct BPM -> period conversion: 60000 ms per minute
+    uint32_t periodMs = (60000u * 256u) / (uint32_t)bpmQ8;
 
-    // Render
+    // Hue follows BPM (smoothly, no per-second stepping)
+    uint8_t hueBase = hueFromBpmQ8(bpmQ8);
+
+    // Optional: tiny hue shift on dub to help the eye read direction (can comment out)
+    uint8_t hueLub = hueBase;
+    uint8_t hueDub = (uint8_t)(hueBase + 8);
+
+    // --- Heartbeat phases: lub, gap, dub, rest ---
+    static uint32_t phaseStartMs = 0;
+    static uint8_t  phase = 0; // 0=lub, 1=gap, 2=dub, 3=rest
+
+    uint16_t lubLen  = (uint16_t)(periodMs / 8);
+    uint16_t gapLen  = (uint16_t)(periodMs / 16);
+    uint16_t dubLen  = (uint16_t)(periodMs / 10);
+
+    if (lubLen < 40) lubLen = 40;
+    if (dubLen < 35) dubLen = 35;
+    if (gapLen < 20) gapLen = 20;
+
+    uint32_t t = now - phaseStartMs;
+
+    if (phase == 0) {
+        if (t >= lubLen) { phase = 1; phaseStartMs = now; t = 0; }
+    } else if (phase == 1) {
+        if (t >= gapLen) { phase = 2; phaseStartMs = now; t = 0; }
+    } else if (phase == 2) {
+        if (t >= dubLen) { phase = 3; phaseStartMs = now; t = 0; }
+    } else {
+        uint32_t used = (uint32_t)lubLen + gapLen + dubLen;
+        uint32_t restLen = (periodMs > used) ? (periodMs - used) : 0;
+        if (t >= restLen) { phase = 0; phaseStartMs = now; t = 0; }
+    }
+
+    // Envelope for current phase at time tt
+    auto envAt = [&](uint32_t tt) -> uint8_t {
+        if (phase == 0) {
+            return triEnv(tt, lubLen);
+        } else if (phase == 2) {
+            uint8_t dub = triEnv(tt, dubLen);
+            return (uint8_t)((uint16_t)dub * 180u / 255u); // dub weaker
+        } else {
+            return 0;
+        }
+    };
+
+    // -------------------- direction / propagation --------------------
+    // Lub propagates outward from LED 1, Dub propagates outward from LED 2.
+
+    // Visible-but-tasteful propagation (per hop)
+    uint16_t basePropMs = (uint16_t)(periodMs / 20); // ~2.8% of period per hop
+    if (basePropMs < 20) basePropMs = 20;
+    if (basePropMs > 70) basePropMs = 70;
+
+    // Phase origin: lub -> 1, dub -> 2
+    uint8_t origin = (phase == 2) ? 2 : 1;
+
+    // -------------------- render --------------------
     ledsClear();
 
-    uint32_t cInner = colorHSV8(hue, 255, vInner);
-    uint32_t cOuter = colorHSV8(hue, 255, vOuter);
+    for (uint8_t i = 0; i < LED_NUM_PIXELS; i++) {
 
-    // Outer LEDs
-    ledsSetPixelPacked(0, cOuter);
-    ledsSetPixelPacked(3, cOuter);
+        // hop distance from origin (0,1,2)
+        uint8_t dist = (i > origin) ? (i - origin) : (origin - i);
+        uint16_t delayMs = (uint16_t)(dist * basePropMs);
 
-    // Inner LEDs (the "heart")
-    ledsSetPixelPacked(1, cInner);
-    ledsSetPixelPacked(2, cInner);
+        uint8_t bri = 0;
+        if (t > delayMs) bri = envAt(t - delayMs);
+
+        // Outer LEDs dimmer to keep the "heart core" feel
+        if (i == 0 || i == 3) bri = (uint8_t)(bri >> 1);
+
+        if (bri == 0) continue;
+
+        uint8_t useHue = (phase == 2) ? hueDub : hueLub;
+
+        // Flip index if needed for your physical strip
+        uint8_t led = (LED_NUM_PIXELS - 1) - i; // remove if not needed
+        ledsSetPixelPacked(led, colorHSV8(useHue, 255, bri));
+        
+    }
 
     ledsShow();
 }
-
