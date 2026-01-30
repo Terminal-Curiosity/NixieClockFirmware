@@ -12,24 +12,24 @@ void ledFireflySync(uint16_t basePeriodMs)
 
     // Simple per-firefly colour palette (fill/tune later)
     static uint8_t huePal[LED_NUM_PIXELS] = {
-        85,   // red-ish
+        85,   // green-ish
         140,  // purple-ish
         200,  // cyan-ish
-        30    // green
+        30    // yellow
     };
 
     static uint32_t lastMs = 0;
 
     // Tuning knobs
-    const uint16_t FLASH_MS      = 100;    // flash duration
+    const uint16_t FLASH_MS      = 100;   // flash duration
     const uint8_t  DIM_V         = 10;    // idle glow
     const uint8_t  FLASH_V       = 255;   // flash brightness
 
-    const uint16_t PERIOD_JITTER = 400;   // bigger -> harder to instantly sync
-    const uint16_t PHASE_KICK    = 30;    // smaller -> slower syncing
+    const uint16_t PERIOD_JITTER = 100;   // bigger -> harder to instantly sync
+    const uint16_t PHASE_KICK    = 40;    // smaller -> slower syncing
 
-    const uint16_t COUPLE_WINDOW = 450;   // only nudge if within last ~X ms of cycle
-    const uint8_t  COUPLE_PROB   = 60;    // % chance to respond to a neighbor flash
+    const uint16_t COUPLE_WINDOW = 1200;   // only nudge if within last ~X ms of cycle
+    const uint8_t  COUPLE_PROB   = 80;    // % chance to respond to a neighbor flash
 
     uint32_t now = millis();
     uint32_t dt = now - lastMs;
