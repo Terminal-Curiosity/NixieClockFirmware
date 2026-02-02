@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 enum DisplayMode {
+  MODE_TUBES_OFF,
   MODE_NORMAL_TIME,
   MODE_CONDITIONING,
   MODE_SET_TIME,

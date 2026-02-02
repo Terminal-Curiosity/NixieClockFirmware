@@ -4,6 +4,7 @@
 #include "time/timeReporter.h"
 #include "tubeConditioning/tubeConditioning.h"
 #include "logger/logger.h"
+#include "hvpsu/hvpsu.h"
 
 static constexpr uint8_t digit_to_pin_mapping[] = {9,0,8,4,12,2,10,6,14,1}; 
 //lookup table to map digit values (0-9) to corresponding nixie digits as per wiring between K155ID1 and PCF8574
@@ -19,11 +20,6 @@ const char* displayModeToString(DisplayMode);
 
 void nixieTubesUpdate()
 {
-
-    //alarmUpdate();
-    //timeSetUiUpdate();
-
-    
     DisplayMode currentDisplayMode = resolveDisplayMode();
 
      switch (currentDisplayMode) {
@@ -31,6 +27,8 @@ void nixieTubesUpdate()
       //renderAlarmRinging();
       break;
 
+    case MODE_TUBES_OFF:
+      break;
     case MODE_SET_TIME:
       //renderTimeSetUi();              // show the candidate time being edited
       break;
@@ -40,7 +38,7 @@ void nixieTubesUpdate()
       break;
 
     case MODE_SECRET_TETRIS:
-      //renderConditioning();           // start secret tetris game
+      //();           // start secret tetris game
       break;
 
     case MODE_CONDITIONING:
@@ -66,12 +64,14 @@ void nixieTubesUpdate()
 const char* displayModeToString(DisplayMode currentDisplayMode)
 {
     switch (currentDisplayMode) {
-        case MODE_NORMAL_TIME:   return "NORMAL";
-        case MODE_CONDITIONING:  return "CONDITIONING";
-        case MODE_SET_TIME:      return "SET_TIME";
-        case MODE_ALARM_RINGING: return "ALARM RINGING";
-        case MODE_ALARM_SET:     return "SET_ALARM";
-        default:                 return "UNKNOWN";
+      case MODE_TUBES_OFF:     return "TUBES OFF";
+      case MODE_NORMAL_TIME:   return "NORMAL";
+      case MODE_CONDITIONING:  return "CONDITIONING";
+      case MODE_SET_TIME:      return "SET_TIME";
+      case MODE_ALARM_RINGING: return "ALARM_RINGING";
+      case MODE_SECRET_TETRIS: return "SECRET_TETRIS";
+      case MODE_ALARM_SET:     return "SET_ALARM";
+      default:                 return "UNKNOWN";
     }
 }
 
@@ -114,6 +114,12 @@ static DisplayMode resolveDisplayMode()
   // Highest priority first:
   //if (alarmIsRinging()) return MODE_ALARM_RINGING;
   
+  if (!hvpsuIsEnabled) return MODE_TUBES_OFF; 
+  //display nothing if the HVPSU is disabled
+
+  //if (batterymode()) return MODE_TUBES_OFF;
+  //need to create a system mode called battery mode and then check against that here
+
   //if (timeSetUiIsActive()) return MODE_SET_TIME;
 
   //if (alarmSetUiIsActive()) return MODE_ALARM_SET;
