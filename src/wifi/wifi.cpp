@@ -1,7 +1,13 @@
 #include "wifi.h"
 #include "logger/logger.h"
 #include <WiFi.h>
-#include "secrets.h"
+
+#if __has_include("secrets.h")
+  #include "secrets.h"
+#else
+  #error "Missing secrets.h. Copy secrets.example.h to secrets.h and fill in credentials."
+#endif
+
 
 static wl_status_t lastLoggedStatus = WL_IDLE_STATUS;
 
