@@ -1,38 +1,35 @@
 #pragma once
 
-//#include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
 
-// void showColor(uint32_t color, int LEDnum = 0) {
-//   strip.setPixelColor(LEDnum, color);  // Set the first (only) LED
-//   strip.show();
-// }
+enum LedMode : uint8_t {
+  LEDMODE_RAINBOW_FADE = 0,
+  LEDMODE_RAINBOW_WAVE,
+  LEDMODE_NIGHTRIDER,
+  LEDMODE_BINARY_COUNTER,
+  LEDMODE_TETRIS_DEMO,
+  LEDMODE_PULSE_SHOCKWAVE,
+  LEDMODE_HEARTBEAT,
+  LEDMODE_CALIFE,
+  LEDMODE_FIREFLY,
+
+  LEDMODE_ENUM_COUNT, // everything before this is cyclable
+
+  //special modes not accessed during regular cycling
+  LEDMODE_OFF = 100,
+  LEDMODE_TETRIS_GAME
+};
 
 
-// void rainbowFade() {
-//   for (int j = 0; j < 256; j++) {
-//     for (int i = 0; i < strip.numPixels(); i++) {
-//       strip.setPixelColor(i, wheel((i + j) & 255));
-//     }
-//     strip.show();
-//     delay(20);
-//   }
-// }
+constexpr uint8_t LED_NUM_PIXELS = 4;
 
+bool ledsInit(void);
+void updateLeds();
+void ledsShow();
+void ledsClear();
+void ledsSetPixel(uint8_t i, uint8_t r, uint8_t g, uint8_t b);
+void ledsSetPixelPacked(uint8_t i, uint32_t RGB);
+void setFourPixelsEqual(uint32_t color);
 
-// // Helper function to generate rainbow colors
-// uint32_t wheel(byte pos) {
-//   if (pos < 85) 
-//   return strip.Color(pos * 3, 255 - pos * 3, 0);
-//   else if (pos < 170) {
-//     pos -= 85;
-//     return strip.Color(255 - pos * 3, 0, pos * 3);
-//   } else {
-//     pos -= 170;
-//     return strip.Color(0, pos * 3, 255 - pos * 3);
-//   }
-// }
-
-
-uint32_t ColorHSV(float h, float s, float v);
-// 
+uint32_t ledsColour(uint8_t r, uint8_t g, uint8_t b);
+uint32_t colorHSV8(uint8_t h, uint8_t s, uint8_t v);

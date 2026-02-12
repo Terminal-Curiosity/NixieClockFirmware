@@ -1,44 +1,112 @@
-# Nixie Clock
+# Nixie Clock — Firmware
 
-A retro-style digital clock built with nixie tubes and an ESP32 microcontroller. This project combines vintage vacuum tube display technology with modern embedded systems to create a unique timekeeping device.
+Firmware for the ESP32-based control system driving a 4-digit Nixie tube clock.
 
-## Features
+This repository contains the embedded software responsible for timekeeping, display driving, brightness control, and peripheral coordination.
 
-- **Nixie Tube Display**: Classic vacuum tube display showing time with authentic retro aesthetic
-- **Auto Brightness Adjustment**: Light Dependent Resistor (LDR) automatically adjusts display brightness based on ambient light
-- **ESP32-based Control**: Powered by an ESP32 microcontroller with dual I2C buses for flexible expansion
-- **Dual PCF8574 I/O Expanders**: Manages the BCD-to-decimal decoder logic for tube control
-- **RGB LED Status Indicator**: NeoPixel LED for status and visual feedback
-- **Cathode Protection**: Periodic nixie tube refresh at 2kHz to prevent cathode poisoning
+Hardware design files, enclosure work, and build documentation live in the main project repository.
 
-## Block Diagram
+---
 
-![Nixie Clock Block Diagram](docs/images/Nixie clock block diagram.png)
+## Scope of This Repository
 
-See [docs/design/](docs/design/) for the detailed block diagram and architecture information.
+This repo covers firmware only:
 
-## Hardware
+- System timekeeping via ESP32 time subsystem
+- Nixie digit control
+- I2C Port expander communication
+- Status LED signaling
+- Brightness sensing + scaling
+- High-voltage enable control
 
-### Main Components
+For hardware schematics and mechanical design, see the parent project repository.
 
-- **Microcontroller**: ESP32 DevKit-C 32D
-- **Nixie Tubes**: 4-digit display (hours and minutes)
-  ![Nixie Tube](docs/images/tube image.png)
-- **I/O Expansion**: 2x PCF8574 I2C I/O expanders
-  ![PCF8574](docs/images/PCF8574 image.png)
-- **Decoders**: K155ID1 BCD-to-decimal decoders
-  ![K155ND1](docs/images/K155ND1 image.png)
-- **Brightness Control**: Light Dependent Resistor (LDR) with analog input
-- **Status LED**: Adafruit NeoPixel RGB LED
-- **High Voltage Supply**: HV enable pin for nixie tube control
+---
 
-### PCB Boards
+## Feature Overview
 
-The project includes three main PCB designs:
+- System time derived from ESP32 `time()`
+- BCD digit encoding for nixie drivers
+- Dual PCF8574 I2C Port expanders to minimise ESP32 GPIO usage
+- Simple Ambient-light auto-dimming
+- Cathode poisoning prevention refresh - once daily
+- RGB LED animations 
+- Once-daily time correction using wifi NTP
 
-1. **NixieClock_ControlDaughterBoard**: Main control board with ESP32 and I2C interfaces
-2. **NixieClock_NixieTubePanel**: Nixie tube display panel with decoder logic
-3. **NixieClock_Monoboard** (Archive): Earlier single-board design
+---
+
+## Firmware Architecture
+
+
+## Execution Model
+
+The firmware operates using a non-blocking main loop coordinated around system time. 
+The loop cycles through performing core functions and each is time-gated according to the current time as measured with millis()
+
+### Timekeeping
+
+Clock time is derived from the ESP32’s built-in `time()` function.
+
+---
+
+### Display Refresh
+
+Display updates occur when the reported second value changes.
+A once-daily cathode conditioning routine runs from 3:30am - 3:45am to cycle through all cathodes at 1Hz.
+
+---
+
+### Main Loop Responsibilities
+
+- Update displayed digits
+- Sample ambient light
+- Drive RGB decoration LEDs
+- Request NTP time update if ready
+
+All operations are non-blocking.
+
+---
+
+## Display Driving
+
+Digits are encoded as 4-bit BCD values.
+
+Signal path:
+
+ESP32 → I²C → PCF8574 → K155ID1 → Nixie cathodes
+
+Each digit update writes the corresponding decoder input value via the expanders.
+
+Digits are mapped from software to hardware pins using a digit_to_pin_mapping[] look up array that has been configured based on this specific wiring.
+
+---
+
+## Brightness Control
+
+Ambient light is measured via an LDR on an ADC input.
+
+ADC readings are mapped into a brightness percentage range:
+
+```
+MIN_BRIGHTNESS_PERCENT → MAX_BRIGHTNESS_PERCENT
+```
+
+This value sets LED brightness high (100%) or low (20%) correspondingly.
+This feature was added so that the LEDs will not be distracting in a dark room, for example the user's bedroom.
+
+---
+
+## High Voltage Control
+
+The nixie HV supply is gated by a firmware-controlled enable pin.
+
+This allows:
+
+- Safe startup sequencing
+- Tube blanking modes
+- Future power-saving states
+
+---
 
 ### GPIO Pin Configuration
 
@@ -46,127 +114,57 @@ The project includes three main PCB designs:
 |-----|----------|
 | 4   | SDA1 (I2C Bus 1) |
 | 15  | SCL1 (I2C Bus 1) |
+| 21  | SDA2 (I2C Bus 2) |
 | 22  | SCL2 (I2C Bus 2) |
 | 19  | INT2 (Interrupt, unused) |
-| 21  | RGB LED (NeoPixel) |
+| 32  | RGB LED (NeoPixel) |
 | 23  | HV Enable (High Voltage supply) |
 | 33  | LDR (Analog input) |
 
-## Software Architecture
 
-### Directory Structure
+I2C bus 2 reserved but currently unused.
+
+---
+
+## Build Environment
+
+PlatformIO is used for dependency management and compilation.
+
+### Requirements
+
+- PlatformIO CLI or VS Code extension
+- Python 3.6+
+
+---
+
+### Build
 
 ```
-src/
-├── main.cpp              # Main application logic
-├── clock_tick/           # Timer interrupt handling
-├── config/               # Configuration management
-├── nixie_tubes/          # Nixie tube display control
-└── pcf8574/              # I2C I/O expander communication
-
-include/                  # Header files
-
-lib/                      # Local libraries and modules
-
-test/                     # Unit tests
+pio run
 ```
 
-### Key Modules
+### Upload
 
-- **clock_tick**: Handles the one-second timer interrupt using ESP32's high-resolution timer for accurate timekeeping
-- **nixie_tubes**: Controls tube display with BCD encoding and brightness management
-- **pcf8574**: I2C communication with PCF8574 I/O expanders for tube digit control
-- **config**: Configuration and constants for pins, timing, and brightness levels
+```
+pio run -t upload
+```
 
-## Getting Started
+### Serial Monitor
 
-### Prerequisites
+```
+pio device monitor
+```
 
-- PlatformIO CLI or VS Code with PlatformIO extension
-- Python 3.6+ (for PlatformIO)
-- macOS, Linux, or Windows
+---
 
-### Installation
+## Configuration
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Terminal-Curiosity/NixieClock.git
-   cd NixieClock
-   ```
+Primary firmware constants live in:
 
-2. Install PlatformIO (if not already installed):
-   ```bash
-   pip install platformio
-   ```
+```
+src/config.h
+```
 
-3. Build the project:
-   ```bash
-   pio run
-   ```
+## Related Repositories
 
-4. Upload to ESP32:
-   ```bash
-   pio run -t upload
-   ```
-
-5. Monitor output (optional):
-   ```bash
-   pio device monitor
-   ```
-
-### Configuration
-
-Edit the configuration constants in [src/main.cpp](src/main.cpp):
-
-- **LDR_BRIGHT_ADC_MIN**: ADC reading threshold for bright light (default: 100)
-- **LDR_DARK_ADC_MAX**: ADC reading threshold for dark light (default: 3200)
-- **MIN_BRIGHTNESS_PERCENT**: Minimum display brightness (default: 10%)
-- **MAX_BRIGHTNESS_PERCENT**: Maximum display brightness (default: 100%)
-- **NIXIE_TUBE_REFRESH_TIME**: Refresh period in microseconds (default: 1000μs for 2kHz refresh)
-
-## Technical Details
-
-### Brightness Control
-
-The LDR automatically adjusts display brightness between the configured minimum and maximum levels. The analog reading is mapped from the ADC range to a PWM duty cycle percentage.
-
-### Nixie Tube Control
-
-Digits are controlled via BCD encoding through the K155ID1 decoder:
-- Each digit is represented as a 4-bit binary value (0-9)
-- PCF8574 I/O expanders convert I2C signals to parallel outputs
-- Periodic refresh cycles prevent cathode poisoning in the vacuum tubes
-
-### Timer Interrupt
-
-A high-resolution timer generates a one-second interrupt to increment the clock time without blocking the main loop.
-
-## Dependencies
-
-- **Adafruit NeoPixel**: RGB LED control library
-- **Wire**: I2C communication library (built-in to Arduino framework)
-- **esp_timer**: ESP32 high-resolution timer library (built-in)
-
-## Project Status
-
-Currently on the **project-restructure** branch, implementing an improved code organization and modularization.
-
-## Documentation
-
-- **[Design Documentation](docs/design/)** - Block diagrams and architectural information
-- **[Images](docs/images/)** - Component images and visual references
-
-## License
-
-[Add license information here]
-
-## Contributing
-
-[Add contribution guidelines here]
-
-## References
-
-- [PlatformIO Documentation](https://docs.platformio.org/)
-- [ESP32 Arduino Framework](https://github.com/espressif/arduino-esp32)
-- [Adafruit NeoPixel Library](https://github.com/adafruit/Adafruit_NeoPixel)
-- [K155ID1 Decoder Datasheet](https://en.wikipedia.org/wiki/K155ID1)
+Hardware design, enclosure, and build documentation are maintained in the main Nixie Clock project repository.

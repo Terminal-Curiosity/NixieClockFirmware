@@ -34,3 +34,4 @@ _PCB/NixieClock/NixieClock_NixieTubePanel/bom/ibom.html
 # Misc
 *.lnk
 .DS_Store
+src/secrets.h
